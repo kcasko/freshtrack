@@ -41,13 +41,14 @@ def zip_centroids():
 
 
 def find_site(name):
-    """Match a site by exact name, then by case-insensitive substring."""
+    """Match a site by exact name, then by substring of its name or a short name."""
     lowered = name.lower().strip()
     for site in sites():
         if site["name"].lower() == lowered:
             return site
     for site in sites():
-        if lowered in site["name"].lower() or site["name"].lower() in lowered:
+        names = [site["name"].lower(), *(a.lower() for a in site["schedule"].get("aliases", []))]
+        if any(lowered in n or n in lowered for n in names):
             return site
     return None
 

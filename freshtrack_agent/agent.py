@@ -15,6 +15,7 @@ fallback with the phone numbers that are always right.
 
 import json
 import os
+import re
 
 from strands import Agent
 from strands.handlers.callback_handler import PrintingCallbackHandler
@@ -31,7 +32,7 @@ The current local time is {now}.
 People writing to you may be hungry, stressed, on a cheap phone, or reading in a second language.
 
 Rules:
-- Always call find_food_help before naming any site. Use route_to_site when they mention walking, a bus, or no car. Use site_details for follow-up questions.
+- Always call find_food_help before naming any site. Use route_to_site when they mention walking, a bus, or no car. When they ask about one site by name, call site_details with that name.
 - Only state hours, days, and phone numbers that appear in a tool result. Never estimate or round a time. If the tool says the time is not listed, say that.
 - Each phone number belongs to one site. If a site's phone is "not listed", say so; never give it another site's number.
 - Lead with what they can do right now: the closest place open now, or the next one that opens today. Then one backup.
@@ -41,8 +42,10 @@ Rules:
 - If nothing is open today, say so plainly and give the fallback from the tool result (phone scheduling and home delivery).
 - Reply in the same language the person wrote in.
 - Write at a 6th-grade reading level. Short sentences. No more than about 90 words. No markdown headers or tables; it is a text message.
-- Do not ask for their name, income, or immigration status. Never promise eligibility.
-- If someone mentions danger, self-harm, or a medical emergency, tell them to call 911 first."""
+- Do not ask for their name, income, or immigration status. Never promise eligibility, and never say what a site does or does not ask about (immigration status, income, ID) unless a tool result says it. If unsure, tell them to call and ask.
+- If someone mentions danger or a medical emergency, such as fainting, tell them to call 911 first.
+- If someone mentions suicide or self-harm, first tell them they can call or text 988 (Suicide and Crisis Lifeline) any time, then help with food.
+- If the location is outside Kalamazoo County, say FreshTrack only covers Kalamazoo County and tell them to dial 2-1-1."""
 
 CHECKER_PROMPT = """You are the FreshTrack fact-checker. You get a draft text message and the exact tool results it was based on.
 Rewrite the draft so that every time, day, and phone number comes from the tool results word for word. Remove anything you cannot find there.
@@ -89,13 +92,13 @@ class FreshTrack:
         self.navigator(message)
         # Join every bit of text the navigator wrote this turn, so a sentence
         # it wrote before a tool call is not lost from the final message.
-        draft = "\n\n".join(
+        draft = tidy_for_sms("\n\n".join(
             block["text"].strip()
             for msg in self.navigator.messages[first_new:]
             if msg["role"] == "assistant"
             for block in msg["content"]
             if block.get("text", "").strip()
-        ).replace("**", "")  # SMS shows markdown bold as literal asterisks
+        ))
         problems = guard.check(draft, tools.now())
         trace = {"draft": draft, "guard_problems": problems, "tool_calls": [r["tool"] for r in self.recorder.results], "rewritten": False}
         reply = draft
@@ -103,12 +106,45 @@ class FreshTrack:
         if problems:
             checker = Agent(name="fact_checker", model=self.checker_model, system_prompt=CHECKER_PROMPT, callback_handler=None)
             evidence = json.dumps(self.recorder.results, ensure_ascii=False)[:20000]
-            reply = str(checker(f"Draft:\n{draft}\n\nProblems found:\n{problems}\n\nTool results:\n{evidence}")).strip()
+            reply = tidy_for_sms(str(checker(f"Draft:\n{draft}\n\nProblems found:\n{problems}\n\nTool results:\n{evidence}")))
             trace["rewritten"] = True
             trace["after_rewrite_problems"] = guard.check(reply, tools.now())
             if trace["after_rewrite_problems"]:
-                reply = SAFE_FALLBACK
+                reply = self._fallback_in_language_of(message)
                 trace["fell_back"] = True
 
         self.last_trace = trace
         return reply
+
+    def _fallback_in_language_of(self, message):
+        """The safe fallback, translated to the person's language if the translation passes the guard."""
+        translator = Agent(
+            name="translator",
+            model=self.checker_model,
+            system_prompt="Translate the text into the language of the sample. Keep every number, time, and name exactly. Return only the translation.",
+            callback_handler=None,
+        )
+        try:
+            translated = tidy_for_sms(str(translator(f"Sample: {message}\n\nText: {SAFE_FALLBACK}")))
+        except Exception:
+            return SAFE_FALLBACK
+        return translated if translated and not guard.check(translated, tools.now()) else SAFE_FALLBACK
+
+
+# Narration of the agent's own steps, which means nothing to someone reading a text.
+FILLER = re.compile(
+    r"\b(let me (check|look|see|find|search|get)|i'?ll (check|look|search|find)|i will (check|look|search)|"
+    r"one moment|déjame (ver|buscar|revisar)|voy a (buscar|revisar))\b",
+    re.IGNORECASE,
+)
+
+
+def tidy_for_sms(text):
+    """Drop filler sentences and markdown bold, which SMS shows as literal asterisks."""
+    lines = []
+    for line in text.replace("**", "").split("\n"):
+        sentences = re.split(r"(?<=[.!?؟])\s+", line.strip())
+        kept = " ".join(s for s in sentences if not FILLER.search(s))
+        if kept or line.strip() == "":
+            lines.append(kept)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()

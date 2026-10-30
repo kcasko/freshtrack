@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    .bg { fill: #ffffff; }
+    .box { fill: #f6f8fa; stroke: #57606a; stroke-width: 1.5; }
+    .agent { fill: #ddf4ff; stroke: #0969da; stroke-width: 2; }
+    .guard { fill: #fff8c5; stroke: #9a6700; stroke-width: 2; }
+    .aws { fill: #fff1e5; stroke: #bc4c00; stroke-width: 1.5; }
+    .safe { fill: #dafbe1; stroke: #1a7f37; stroke-width: 1.5; }
+    .t { fill: #1f2328; }
+    .s { fill: #57606a; font-size: 12px; }
+    .h { fill: #1f2328; font-weight: 600; }
+    .line { stroke: #57606a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .dash { stroke-dasharray: 5 4; }
+    #arrow path { fill: #57606a; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .box { fill: #161b22; stroke: #8b949e; }
+      .agent { fill: #0c2d6b; stroke: #58a6ff; }
+      .guard { fill: #3b2e00; stroke: #d29922; }
+      .aws { fill: #3d1d00; stroke: #f0883e; }
+      .safe { fill: #04260f; stroke: #3fb950; }
+      .t, .h { fill: #e6edf3; }
+      .s { fill: #8b949e; }
+      .line { stroke: #8b949e; }
+      #arrow path { fill: #8b949e; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <rect class="bg" width="880" height="430" rx="8"/>
+
+  <rect class="box" x="20" y="40" width="150" height="70" rx="8"/>
+  <text class="h" x="95" y="68" text-anchor="middle">Person</text>
+  <text class="s" x="95" y="88" text-anchor="middle">any language, any phone</text>
+
+  <rect class="agent" x="230" y="30" width="200" height="90" rx="8"/>
+  <text class="h" x="330" y="58" text-anchor="middle">Navigator agent</text>
+  <text class="s" x="330" y="78" text-anchor="middle">Strands + Claude on Bedrock</text>
+  <text class="s" x="330" y="96" text-anchor="middle">hook records every tool result</text>
+
+  <rect class="guard" x="490" y="30" width="170" height="90" rx="8"/>
+  <text class="h" x="575" y="58" text-anchor="middle">Hours guard</text>
+  <text class="s" x="575" y="78" text-anchor="middle">no model involved:</text>
+  <text class="s" x="575" y="96" text-anchor="middle">times, phones, phone owner</text>
+
+  <rect class="box" x="720" y="40" width="140" height="70" rx="8"/>
+  <text class="h" x="790" y="68" text-anchor="middle">Reply</text>
+  <text class="s" x="790" y="88" text-anchor="middle">SMS-ready text</text>
+
+  <path class="line" d="M170 75 H228"/>
+  <path class="line" d="M430 75 H488"/>
+  <path class="line" d="M660 75 H718"/>
+  <text class="s" x="689" y="66" text-anchor="middle">pass</text>
+
+  <rect class="agent" x="490" y="185" width="170" height="80" rx="8"/>
+  <text class="h" x="575" y="212" text-anchor="middle">Fact-checker agent</text>
+  <text class="s" x="575" y="232" text-anchor="middle">no tools; rewrites from</text>
+  <text class="s" x="575" y="250" text-anchor="middle">recorded results only</text>
+  <path class="line" d="M575 120 V183"/>
+  <text class="s" x="583" y="156">fail</text>
+  <path class="line" d="M660 225 H790 V112"/>
+  <text class="s" x="700" y="216">pass</text>
+
+  <rect class="safe" x="490" y="320" width="170" height="70" rx="8"/>
+  <text class="h" x="575" y="347" text-anchor="middle">Safe fallback</text>
+  <text class="s" x="575" y="367" text-anchor="middle">Loaves &amp; Fishes + 2-1-1</text>
+  <path class="line" d="M575 265 V318"/>
+  <text class="s" x="583" y="296">still fails</text>
+  <path class="line dash" d="M660 355 H800 V112"/>
+
+  <rect class="box" x="20" y="185" width="190" height="205" rx="8"/>
+  <text class="h" x="115" y="210" text-anchor="middle">Tools (facts)</text>
+  <text class="t" x="38" y="238">find_food_help</text>
+  <text class="t" x="38" y="262">route_to_site</text>
+  <text class="t" x="38" y="286">site_details</text>
+  <text class="s" x="38" y="318">schedules.json: nth weekday,</text>
+  <text class="s" x="38" y="336">excluded weeks, conflicts,</text>
+  <text class="s" x="38" y="354">unknown times. Tested by hand-</text>
+  <text class="s" x="38" y="372">checked cases in CI.</text>
+  <path class="line" d="M300 120 V150 H115 V183"/>
+
+  <rect class="aws" x="250" y="230" width="190" height="110" rx="8"/>
+  <text class="h" x="345" y="256" text-anchor="middle">Amazon Location v2</text>
+  <text class="s" x="345" y="280" text-anchor="middle">geo-places Geocode</text>
+  <text class="s" x="345" y="298" text-anchor="middle">geo-routes CalculateRoutes</text>
+  <text class="s" x="345" y="320" text-anchor="middle">walk and drive time</text>
+  <path class="line" d="M210 285 H248"/>
+</svg>

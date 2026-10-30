@@ -89,8 +89,82 @@ def check(reply, now=None):
             minutes = max(readings)
             problems.append(f"time {data.format_time(f'{minutes // 60:02d}:{minutes % 60:02d}')} is not in the dataset")
     phones = allowed_phones()
+    owners = phone_owners()
     for match in PHONE.finditer(reply):
         digits = "".join(match.groups())
         if digits not in phones:
             problems.append(f"phone {match.group(0)} is not in the dataset")
-    return problems
+            continue
+        named = sites_for_phone(reply, match.start(), match.end())
+        if named and digits in owners and not named & owners[digits]:
+            problems.append(f"phone {match.group(0)} belongs to {' / '.join(sorted(owners[digits]))}, not {' / '.join(sorted(named))}")
+    return problems + unsupported_promises(reply)
+
+
+# Promises about what pantries ask. Nothing in the dataset supports them, and a
+# wrong one can put someone at risk, so they always go to the fact-checker.
+UNSUPPORTED_PROMISE = re.compile(
+    r"(do(es)?n'?t|do(es)? not|won'?t|will not|never)\s+(ask|check|require|need)\w*\s+(about\s+|for\s+)?(your\s+)?"
+    r"(immigration|citizenship|papers|documents|id\b|income)"
+    r"|no\s+(preguntan|piden|revisan)\w*\s+(por\s+|sobre\s+)?(el\s+|tu\s+|su\s+)?(estatus|estado|situación)\s+migratori"
+    r"|(?<!if )(?<!whether )\b(you|everyone)\s+(qualify|are eligible|will be served)",
+    re.IGNORECASE,
+)
+
+
+def unsupported_promises(reply):
+    return [f"unsupported promise: '{m.group(0)}'" for m in UNSUPPORTED_PROMISE.finditer(reply)]
+
+
+def phone_owners():
+    """Map each listed phone number to the sites that publish it."""
+    owners = {}
+    for site in data.sites():
+        text = " ".join(str(site.get(k, "")) for k in ("phone", "hours_note"))
+        for match in PHONE.finditer(text):
+            owners.setdefault("".join(match.groups()), set()).add(site["name"])
+    return owners
+
+
+def _mentions(text):
+    """Every (start, end, site name) where a site's name or short name appears."""
+    found = []
+    for site in data.sites():
+        for alias in [site["name"], *site["schedule"].get("aliases", [])]:
+            for match in re.finditer(re.escape(alias), text, re.IGNORECASE):
+                found.append((match.start(), match.end(), site["name"]))
+    # Prefer the longest alias at a position, so "Kalamazoo Loaves & Fishes"
+    # wins over the "Loaves and Fishes" inside a church pantry's name.
+    found.sort(key=lambda m: (m[0], -(m[1] - m[0])))
+    kept, covered_to = [], -1
+    for start, end, name in found:
+        if start >= covered_to:
+            kept.append((start, end, name))
+            covered_to = end
+    return kept
+
+
+def sites_for_phone(text, start, end):
+    """Which sites a phone number could be being given for.
+
+    Every site named in the same sentence, since a sentence like "Ministry
+    with Community and Gospel Mission serve lunch, call 269-343-5880" names
+    two. If the sentence names none, every site in the last earlier sentence
+    of the paragraph that named one. An empty set means no site is named.
+    """
+    paragraph_start = text.rfind("\n\n", 0, start) + 1
+    sentence_start = max(paragraph_start, *(m.end() for m in re.finditer(r"[.!?؟]\s|\n", text[:start])), 0)
+    next_break = re.search(r"[.!?؟](\s|$)|\n", text[end:])
+    sentence_end = end + next_break.start() if next_break else len(text)
+
+    mentions = _mentions(text)
+    in_sentence = [m for m in mentions if m[0] >= sentence_start and m[1] <= sentence_end]
+    if in_sentence:
+        return {m[2] for m in in_sentence}
+    earlier = [m for m in mentions if paragraph_start <= m[0] < start]
+    if not earlier:
+        return set()
+    # Every site in the last sentence that named one.
+    last = earlier[-1][0]
+    last_sentence_start = max(paragraph_start, *(m.end() for m in re.finditer(r"[.!?؟]\s|\n", text[:last])), 0)
+    return {m[2] for m in earlier if m[0] >= last_sentence_start}
