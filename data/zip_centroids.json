@@ -1,0 +1,26 @@
+{
+  "_about": "ZIP code center points for Kalamazoo County and neighbors, from the Amazon Location Service Places Geocode API (geo-places), October 30, 2026. Used when someone gives only a ZIP code, and as an offline fallback. Coordinates are [longitude, latitude].",
+  "zips": {
+    "49001": {"position": [-85.56973, 42.27747], "label": "Kalamazoo"},
+    "49002": {"position": [-85.58937, 42.20172], "label": "Portage"},
+    "49004": {"position": [-85.56583, 42.3256], "label": "Kalamazoo (Parchment area)"},
+    "49006": {"position": [-85.60642, 42.29329], "label": "Kalamazoo"},
+    "49007": {"position": [-85.58768, 42.29159], "label": "Kalamazoo"},
+    "49008": {"position": [-85.59498, 42.27792], "label": "Kalamazoo"},
+    "49009": {"position": [-85.6636, 42.26644], "label": "Kalamazoo (Oshtemo)"},
+    "49012": {"position": [-85.35137, 42.33537], "label": "Augusta"},
+    "49019": {"position": [-85.64825, 42.2936], "label": "Kalamazoo"},
+    "49024": {"position": [-85.59703, 42.22915], "label": "Portage"},
+    "49034": {"position": [-85.33592, 42.24018], "label": "Climax"},
+    "49048": {"position": [-85.55216, 42.30425], "label": "Kalamazoo (Eastside)"},
+    "49052": {"position": [-85.35182, 42.11504], "label": "Fulton"},
+    "49053": {"position": [-85.41617, 42.28892], "label": "Galesburg"},
+    "49067": {"position": [-85.81385, 42.02696], "label": "Marcellus"},
+    "49071": {"position": [-85.78517, 42.20959], "label": "Mattawan"},
+    "49074": {"position": [-85.53854, 42.31548], "label": "Nazareth"},
+    "49083": {"position": [-85.45529, 42.37786], "label": "Richland"},
+    "49087": {"position": [-85.6371, 42.11585], "label": "Schoolcraft"},
+    "49088": {"position": [-85.41292, 42.1955], "label": "Scotts"},
+    "49097": {"position": [-85.53042, 42.11995], "label": "Vicksburg"}
+  }
+}

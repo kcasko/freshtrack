@@ -1,0 +1,12 @@
+{
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "run_at": "2026-10-30T11:39:55",
+  "schedule": {
+    "checks": 44,
+    "passed": 44
+  },
+  "search": {
+    "checks": 5,
+    "passed": 5
+  }
+}

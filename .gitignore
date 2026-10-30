@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*.pyc
+# Never commit a real Amazon Location API key; keep a local copy of config.js out of git if you add one.
+config.local.js

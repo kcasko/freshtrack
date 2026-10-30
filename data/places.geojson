@@ -1,0 +1,366 @@
+{
+  "features": [
+    {
+      "geometry": {
+        "coordinates": [
+          -85.572377,
+          42.282537
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "901 Portage St, Kalamazoo, MI 49001",
+        "category": "pantry",
+        "hours_note": "Office and call center Mon-Fri 8am-4pm. Grocery Pantry scheduling via Call Center Mon-Fri 9am-4pm, twice per calendar month, with curbside pickup, in-person shopping, or free home delivery in Kalamazoo County, per Loaves & Fishes. Call 269-343-3663 before you go.",
+        "name": "Kalamazoo Loaves & Fishes",
+        "note": "Largest provider of supplemental food in Kalamazoo County, with a network of pantries and distributions. Senior Commodities Program: people over 60 can receive supplemental groceries at local community centers and residential sites, call to learn how to apply. Mobile Food Initiative: supplemental groceries at sites throughout the county during the month, no pre-registration stated, call for the current schedule.",
+        "phone": "269-343-3663",
+        "source": "https://kzoolf.org/",
+        "service_types": [
+          "emergency_pantry",
+          "senior_program",
+          "mobile_program"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.6214,
+          42.2398
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "2500 Vincent Ave, Portage, MI 49024",
+        "category": "pantry",
+        "hours_note": "Tuesdays 5:30-7pm, per local resource list. Call 269-324-5599 to confirm.",
+        "name": "Valley Family Church, Grocery Assistance",
+        "note": "Grocery assistance site listed in a local Kalamazoo resource directory.",
+        "phone": "269-324-5599",
+        "source": "https://www.thehouseofshiloh.org/resources",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.57155,
+          42.28054
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "1122 Portage St, Kalamazoo, MI 49001",
+        "category": "pantry",
+        "hours_note": "Tue, Wed, Fri 9am-noon and 1-4pm, per local resource list. Call 269-382-4706 to confirm.",
+        "name": "Dream Center",
+        "note": "Groceries, toiletries, and hygiene products, per local resource list.",
+        "phone": "269-382-4706",
+        "source": "https://www.thehouseofshiloh.org/resources",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.57017,
+          42.16684
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "10332 Portage St, Portage, MI 49002",
+        "category": "pantry",
+        "hours_note": "South Michigan Food Bank guide (July 13, 2026) says 1st and 3rd Friday 2:30-5:15pm and 2nd and 4th Saturday 10am-12:45pm. Other directories list different windows, so call 269-532-4912 to confirm before you go.",
+        "name": "Twelve Baskets Food Pantry",
+        "note": "Families may be served twice per month, per local resource list.",
+        "phone": "269-532-4912",
+        "source": "https://www.thehouseofshiloh.org/resources",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.58987,
+          42.3012
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "1010 N Westnedge Ave, Kalamazoo, MI 49007",
+        "category": "pantry",
+        "hours_note": "Mon and Thu 9-11am, per local resource list. Call 269-344-7333 to confirm.",
+        "name": "Dorothy Hobbs Food Pantry",
+        "note": "Food pantry site listed in a local Kalamazoo resource directory.",
+        "phone": "269-344-7333",
+        "source": "https://www.thehouseofshiloh.org/resources",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.50557,
+          42.2873
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "6330 King Hwy, Comstock, MI 49048",
+        "category": "pantry",
+        "hours_note": "Tue and Thu 1-3pm, walk-in, per food pantry directory. Bring ID and containers. Service area noted as Kalamazoo County east of Sprinkle Road.",
+        "name": "Comstock Community Center Grocery Food Pantry",
+        "note": "Walk-in pantry. Individuals can self-declare need every 14 days, per directory.",
+        "source": "https://www.foodpantries.org/co/mi-kalamazoo",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.66882,
+          42.31048
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "2345 N 10th St, Kalamazoo, MI 49009",
+        "category": "pantry",
+        "hours_note": "4th Saturday of the month 9am, per food pantry directory. First come, first served. Bring containers for food.",
+        "name": "Centerpoint Church, Loaves and Fishes Pantry",
+        "note": "No requirements noted in directory, beyond signing in with a declaration of need.",
+        "source": "https://www.foodpantries.org/co/mi-kalamazoo",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.54434,
+          42.31197
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "2800 Gull Rd, Kalamazoo, MI 49048",
+        "category": "pantry",
+        "hours_note": "Mon 5:30-7pm (no 5th Monday), Wed 5:45-7pm (not 1st or 5th Wednesday), Thu 1-2:30pm, per directory. Call ahead to confirm.",
+        "name": "Sunnyside United Methodist Church, Loaves and Fishes Pantry",
+        "note": "All Kalamazoo County residents eligible for a four-day food supply once every 30 days, per directory.",
+        "source": "https://www.freefood.org/l/mi_49048_sunnyside-united-methodist-church-loafs-and-fish-pantry",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.59807,
+          42.30387
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "1000 W Paterson St, Kalamazoo, MI 49007",
+        "category": "pantry",
+        "hours_note": "Tue, Wed, Thu; time of day not stated in the Loaves & Fishes source found. Call 269-343-3663 to confirm.",
+        "name": "Douglass Pantry, Kalamazoo Loaves & Fishes partner",
+        "note": "In-person, market-style shopping experience, per Kalamazoo Loaves & Fishes.",
+        "source": "https://kzoolf.org/volunteer-needs",
+        "phone": "269-343-3663",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.58311,
+          42.27497
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "1700 S Burdick St, Kalamazoo, MI 49001",
+        "category": "pantry",
+        "hours_note": "Mon, Wed, Fri 9am-noon; Tue, Thu 1-4pm, per South Michigan Food Bank guide. Call ahead to confirm.",
+        "name": "Salvation Army Kalamazoo",
+        "note": "Food pantry listed in the South Michigan Food Bank Kalamazoo County Resource Guide. Mobile Food Initiative distribution also listed at the Salvation Army on the 4th Wednesday of the month at 1pm, per Bethany Kalamazoo, call to confirm.",
+        "source": "https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf",
+        "service_types": [
+          "emergency_pantry",
+          "mobile_program"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.59995,
+          42.30251
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "1225 W Paterson St, Kalamazoo, MI 49007",
+        "category": "pantry",
+        "hours_note": "Mon, Wed, Thu 10:30am-12:30pm; Thu 6-8pm, per South Michigan Food Bank guide. An older directory listing says call ahead / by appointment, so call ahead to confirm.",
+        "name": "Stone Church / New Genesis Pantry",
+        "note": "Pantry listed in the South Michigan Food Bank Kalamazoo County Resource Guide.",
+        "source": "https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.62838,
+          42.29787
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "538 Nichols Rd, Kalamazoo, MI 49006",
+        "category": "pantry",
+        "hours_note": "1st and 3rd Saturday, 10am-noon per South Michigan Food Bank guide; the pantry's own site description says 9am-noon, so call ahead to confirm the start time.",
+        "name": "Westwood Neighborhood Food Pantry",
+        "note": "Food pantry at Westwood United Methodist Church area.",
+        "source": "https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.57101,
+          42.32562
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "310 S Riverview Dr, Kalamazoo, MI 49004",
+        "category": "pantry",
+        "hours_note": "Saturdays 10am-noon, per South Michigan Food Bank guide. Call ahead to confirm.",
+        "name": "Faith Life Church",
+        "note": "Food pantry listed in the South Michigan Food Bank Kalamazoo County Resource Guide.",
+        "source": "https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.61758,
+          42.236
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "5550 Oakland Dr, Portage, MI 49024",
+        "category": "pantry",
+        "hours_note": "3rd Thursday; time not stated in the guide found. By appointment only, phone 269-329-1977.",
+        "name": "Kalamazoo First Assembly of God",
+        "note": "Food pantry listed in the South Michigan Food Bank Kalamazoo County Resource Guide.",
+        "source": "https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf",
+        "phone": "269-329-1977",
+        "service_types": [
+          "emergency_pantry"
+        ]
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.583217,
+          42.295435
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "448 N Burdick St, Kalamazoo, MI 49007",
+        "category": "soup_kitchen",
+        "hours_note": "Free daily meals, 7 days a week, per local resource list: Breakfast 8-9am, Lunch 1:30-2:30pm, Dinner 4:30-6:30pm. Other sources list different meal windows, so call 269-345-2974 to confirm.",
+        "name": "Kalamazoo Gospel Mission",
+        "note": "Soup kitchen and meal service. Serves over 4,000 meals per week, per its listing.",
+        "service_types": [
+          "soup_kitchen"
+        ],
+        "source": "https://www.thehouseofshiloh.org/resources",
+        "phone": "269-345-2974"
+      },
+      "type": "Feature"
+    },
+    {
+      "geometry": {
+        "coordinates": [
+          -85.58147,
+          42.2957
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "address": "500 N Edwards St, Kalamazoo, MI 49007",
+        "category": "soup_kitchen",
+        "hours_note": "Free daily meals, 7 days a week, per local resource list: Breakfast 8-9am, Lunch 1:30-2:20pm. Boxed meals at the back door outside meal times, per South Michigan Food Bank guide. Call 269-343-5880 to confirm.",
+        "name": "Ministry with Community",
+        "note": "Soup kitchen and meal service in downtown Kalamazoo.",
+        "service_types": [
+          "soup_kitchen"
+        ],
+        "source": "https://www.thehouseofshiloh.org/resources",
+        "phone": "269-343-5880"
+      },
+      "type": "Feature"
+    }
+  ],
+  "metadata": {
+    "area": "Kalamazoo County, Michigan, focused on Kalamazoo, Portage, and Comstock",
+    "data_date": "2026-10-30",
+    "name": "FreshTrack Kalamazoo, starter dataset",
+    "note": "Starter set only, not an exhaustive directory. 14 emergency pantries, 2 soup kitchens, plus senior and mobile programs noted on Kalamazoo Loaves & Fishes and the Salvation Army. Hours come from the South Michigan Food Bank Kalamazoo County Resource Guide, Loaves & Fishes, and local directories checked October 30, 2026, not from a direct call to each site. Schedules change. Call the number in each card before you travel.",
+    "sources": [
+      "Kalamazoo Loaves & Fishes, https://kzoolf.org/",
+      "House of Shiloh local resources, https://www.thehouseofshiloh.org/resources",
+      "Food Pantries directory for Kalamazoo County, https://www.foodpantries.org/co/mi-kalamazoo",
+      "FreeFood.org pantry listings",
+      "South Michigan Food Bank Kalamazoo County Resource Guide, https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf"
+    ]
+  },
+  "type": "FeatureCollection"
+}

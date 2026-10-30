@@ -1,0 +1,91 @@
+{
+  "_about": "Structured opening windows for each site in places.geojson, transcribed by hand from each site's hours_note on October 30, 2026. Days use Mon..Sun. 'weeks' limits a window to the nth weekday of the month (1-5), 'exclude_weeks' removes some. A null start or end means the source did not give that time. 'conflict' means sources disagree, so the agent must always tell people to call first.",
+  "sites": {
+    "Kalamazoo Loaves & Fishes": {
+      "kind": "call_to_schedule",
+      "windows": [
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri"], "start": "09:00", "end": "16:00", "label": "Call center for grocery scheduling"}
+      ],
+      "delivery": true,
+      "notes": "Schedule by phone, twice per calendar month. Curbside pickup, in-person shopping, or free home delivery in Kalamazoo County."
+    },
+    "Valley Family Church, Grocery Assistance": {
+      "windows": [{"days": ["Tue"], "start": "17:30", "end": "19:00"}]
+    },
+    "Dream Center": {
+      "windows": [
+        {"days": ["Tue", "Wed", "Fri"], "start": "09:00", "end": "12:00"},
+        {"days": ["Tue", "Wed", "Fri"], "start": "13:00", "end": "16:00"}
+      ]
+    },
+    "Twelve Baskets Food Pantry": {
+      "conflict": true,
+      "windows": [
+        {"days": ["Fri"], "weeks": [1, 3], "start": "14:30", "end": "17:15"},
+        {"days": ["Sat"], "weeks": [2, 4], "start": "10:00", "end": "12:45"}
+      ]
+    },
+    "Dorothy Hobbs Food Pantry": {
+      "windows": [{"days": ["Mon", "Thu"], "start": "09:00", "end": "11:00"}]
+    },
+    "Comstock Community Center Grocery Food Pantry": {
+      "windows": [{"days": ["Tue", "Thu"], "start": "13:00", "end": "15:00"}],
+      "service_area": "Kalamazoo County east of Sprinkle Road",
+      "bring": "ID and containers"
+    },
+    "Centerpoint Church, Loaves and Fishes Pantry": {
+      "windows": [{"days": ["Sat"], "weeks": [4], "start": "09:00", "end": null}],
+      "bring": "containers"
+    },
+    "Sunnyside United Methodist Church, Loaves and Fishes Pantry": {
+      "windows": [
+        {"days": ["Mon"], "exclude_weeks": [5], "start": "17:30", "end": "19:00"},
+        {"days": ["Wed"], "exclude_weeks": [1, 5], "start": "17:45", "end": "19:00"},
+        {"days": ["Thu"], "start": "13:00", "end": "14:30"}
+      ]
+    },
+    "Douglass Pantry, Kalamazoo Loaves & Fishes partner": {
+      "windows": [{"days": ["Tue", "Wed", "Thu"], "start": null, "end": null}]
+    },
+    "Salvation Army Kalamazoo": {
+      "windows": [
+        {"days": ["Mon", "Wed", "Fri"], "start": "09:00", "end": "12:00"},
+        {"days": ["Tue", "Thu"], "start": "13:00", "end": "16:00"},
+        {"days": ["Wed"], "weeks": [4], "start": "13:00", "end": null, "label": "Mobile Food Initiative distribution"}
+      ]
+    },
+    "Stone Church / New Genesis Pantry": {
+      "conflict": true,
+      "windows": [
+        {"days": ["Mon", "Wed", "Thu"], "start": "10:30", "end": "12:30"},
+        {"days": ["Thu"], "start": "18:00", "end": "20:00"}
+      ]
+    },
+    "Westwood Neighborhood Food Pantry": {
+      "conflict": true,
+      "windows": [{"days": ["Sat"], "weeks": [1, 3], "start": "10:00", "end": "12:00"}]
+    },
+    "Faith Life Church": {
+      "windows": [{"days": ["Sat"], "start": "10:00", "end": "12:00"}]
+    },
+    "Kalamazoo First Assembly of God": {
+      "appointment_only": true,
+      "windows": [{"days": ["Thu"], "weeks": [3], "start": null, "end": null}]
+    },
+    "Kalamazoo Gospel Mission": {
+      "conflict": true,
+      "windows": [
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "start": "08:00", "end": "09:00", "label": "Breakfast"},
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "start": "13:30", "end": "14:30", "label": "Lunch"},
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "start": "16:30", "end": "18:30", "label": "Dinner"}
+      ]
+    },
+    "Ministry with Community": {
+      "windows": [
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "start": "08:00", "end": "09:00", "label": "Breakfast"},
+        {"days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "start": "13:30", "end": "14:20", "label": "Lunch"}
+      ],
+      "notes": "Boxed meals at the back door outside meal times; times not given."
+    }
+  }
+}

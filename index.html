@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FreshTrack: Kalamazoo Food Bank and Mobile Pantry Access</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="config.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #1f2937; }
+  header { padding: 16px 20px 8px; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 30px; }
+  p { margin: 6px 0; line-height: 1.5; }
+  .notice { background: #fff7ed; border: 1px solid #fed7aa; padding: 10px 12px; border-radius: 8px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 20px; max-width: 1100px; margin: 0 auto; }
+  .controls button, .controls input { font-size: 15px; padding: 8px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; }
+  .controls button.active { background: #166534; color: #fff; border-color: #166534; }
+  .controls input { border-radius: 8px; flex: 1 1 220px; cursor: text; }
+  main { display: grid; grid-template-columns: 1fr 380px; gap: 0; max-width: 1100px; margin: 0 auto 20px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+  #map { height: 640px; min-width: 0; }
+  aside { padding: 14px; overflow-y: auto; max-height: 640px; background: #f8fafc; }
+  .place { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .place h3 { margin: 0 0 4px; font-size: 16px; }
+  .place button { margin-top: 6px; padding: 7px 11px; border-radius: 999px; border: 1px solid #166534; background: #166534; color: #fff; cursor: pointer; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: #dbeafe; margin-right: 4px; }
+  .tag.soup { background: #fef3c7; }
+  #route-panel { background: #fff; border: 1px solid #86efac; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
+  #route-panel.visible { display: block; }
+  footer { max-width: 1100px; margin: 0 auto; padding: 0 20px 30px; font-size: 14px; color: #475569; }
+  @media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+    #map { height: 480px; }
+    aside { max-height: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>FreshTrack</h1>
+  <p><strong>Food bank and mobile pantry access routing for Kalamazoo County.</strong> Find the nearest place to get groceries or a hot meal, filter by what you need, and get a route from where you are.</p>
+  <p class="notice" id="basemap-notice">Demo basemap is showing. Add your Amazon Location Service API key in <code>config.js</code> to switch to the Amazon Location basemap, Place Index search, and driving or walking routes. See README for the exact setup.</p>
+  <p><strong>Call before you go.</strong> Pantry and meal schedules change, and some sites only run on certain days of the month. If a card says hours differ between sources, trust the phone call, not the map.</p>
+</header>
+
+<div class="controls">
+  <button data-filter="all" class="active">All food help</button>
+  <button data-filter="emergency_pantry">Emergency pantry</button>
+  <button data-filter="soup_kitchen">Soup kitchen</button>
+  <button data-filter="senior_program">Senior help</button>
+  <button data-filter="mobile_program">Mobile distribution</button>
+</div>
+<div class="controls">
+  <input id="address" type="text" placeholder="Type an address, for example 1200 Portage St, Kalamazoo">
+  <button id="find-nearest">Find nearest 3</button>
+  <input id="search" type="search" placeholder="Search by name, for example Loaves or Gospel">
+  <button id="locate">Use my location</button>
+  <button id="reset-start">Reset starting point</button>
+</div>
+
+<main>
+  <div id="map" aria-label="Map of food pantries, soup kitchens, and mobile food help in Kalamazoo County, Michigan"></div>
+  <aside>
+    <div id="route-panel">
+      <h2 style="margin:0 0 6px;font-size:18px;">Your route</h2>
+      <p id="route-text"></p>
+      <button id="route-driving">Driving</button>
+      <button id="route-walking">Walking</button>
+    </div>
+    <h2 id="list-heading">Nearest places</h2>
+    <p id="start-note">Starting point: downtown Kalamazoo. Click anywhere on the map, use your location, or type an address and choose Find nearest 3.</p>
+    <div id="nearest"></div>
+    <div id="list"></div>
+  </aside>
+</main>
+
+<footer>
+  <p>Data date: October 30, 2026. Sources are listed in each place card and in <code>data/places.geojson</code>. Primary local sources: South Michigan Food Bank Kalamazoo County Resource Guide, Kalamazoo Loaves &amp; Fishes, and local resource directories. Future dataset layers named in the submission: Feeding America agency data, USDA Food Access Research Atlas, and Michigan Open Data emergency food sites, to be added only after their licenses and tract-level files are checked.</p>
+  <p>How to read this map: emergency pantries give groceries to take home. Soup kitchens serve hot meals. Senior help and mobile distribution are programs, not always a fixed warehouse: Kalamazoo Loaves &amp; Fishes runs senior commodities at community centers and residential sites, and mobile distributions at sites around the county. Call 269-343-3663 if you are not sure where to start.</p>
+</footer>
+
+<script>
+const config = window.KZOO_FOOD_MAP_CONFIG || {};
+const SERVICE_LABEL = { emergency_pantry: "Emergency pantry", soup_kitchen: "Soup kitchen", senior_program: "Senior help", mobile_program: "Mobile distribution" };
+let allPlaces = [];
+let currentFilter = "all";
+let searchText = "";
+let startPoint = [-85.5872, 42.2917];
+let startMarker = null;
+let routeDestination = null;
+let routeMode = "driving";
+let map = null;
+
+function haversineMiles(a, b) {
+  const R = 3958.8;
+  const dLat = (b[1] - a[1]) * Math.PI / 180;
+  const dLon = (b[0] - a[0]) * Math.PI / 180;
+  const lat1 = a[1] * Math.PI / 180;
+  const lat2 = b[1] * Math.PI / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function serviceTypes(f) {
+  return f.properties.service_types || [f.properties.category];
+}
+function filteredPlaces() {
+  return allPlaces.filter((f) => {
+    if (currentFilter !== "all" && !serviceTypes(f).includes(currentFilter)) return false;
+    if (searchText && !f.properties.name.toLowerCase().includes(searchText) && !(f.properties.address || "").toLowerCase().includes(searchText)) return false;
+    return true;
+  }).map((f) => ({ ...f, properties: { ...f.properties, distance: haversineMiles(startPoint, f.geometry.coordinates) } }))
+    .sort((a, b) => a.properties.distance - b.properties.distance);
+}
+function tagsHtml(p) {
+  return serviceTypes({ properties: p }).map((t) => `<span class="tag ${t === "soup_kitchen" ? "soup" : ""}">${SERVICE_LABEL[t] || t}</span>`).join("");
+}
+function popupHtml(props) {
+  const source = props.source ? `<p><a href="${props.source}" target="_blank" rel="noopener">Source</a></p>` : "";
+  const phone = props.phone ? `<p>Phone: ${props.phone}</p>` : "";
+  return `<h3>${props.name}</h3><p>${tagsHtml(props)}<br>${props.address || ""}</p><p>${props.note || ""}</p><p>${props.hours_note || ""}</p>${phone}${source}`;
+}
+function cardHtml(f, showRouteButton) {
+  const p = f.properties;
+  return `<article class="place" data-lng="${f.geometry.coordinates[0]}" data-lat="${f.geometry.coordinates[1]}" data-name="${p.name.replace(/"/g, "")}">
+    ${tagsHtml(p)}
+    <h3>${p.name} &middot; ${p.distance.toFixed(1)} mi straight-line</h3>
+    <p>${p.address || ""}</p><p>${p.note || ""}</p><p>${p.hours_note || ""}</p>
+    ${p.phone ? `<p>Phone: ${p.phone}</p>` : ""}
+    ${p.source ? `<p><a href="${p.source}" target="_blank" rel="noopener">Source</a></p>` : ""}
+    ${showRouteButton ? `<button class="route-btn">Calculate route</button>` : ""}
+  </article>`;
+}
+function attachCardEvents(container) {
+  container.querySelectorAll(".place").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (e.target.classList.contains("route-btn")) return;
+      map.flyTo({ center: [Number(el.dataset.lng), Number(el.dataset.lat)], zoom: 14 });
+    });
+    const btn = el.querySelector(".route-btn");
+    if (btn) btn.addEventListener("click", () => calculateRoute([Number(el.dataset.lng), Number(el.dataset.lat)], el.dataset.name));
+  });
+}
+function renderList() {
+  const places = filteredPlaces();
+  document.getElementById("list-heading").textContent = `Places, nearest first (${places.length})`;
+  document.getElementById("start-note").textContent = `Starting point: ${startPoint[1].toFixed(4)}, ${startPoint[0].toFixed(4)}. Click the map, use your location, or type an address. Distances in the list are straight-line miles until a route is calculated.`;
+  const nearestEl = document.getElementById("nearest");
+  const top3 = places.slice(0, 3);
+  nearestEl.innerHTML = `<h3 style="margin:0 0 8px;">Nearest 3</h3>` + (top3.map((f) => cardHtml(f, true)).join("") || "<p>No places match that filter yet.</p>");
+  document.getElementById("list").innerHTML = places.slice(3).map((f) => cardHtml(f, true)).join("");
+  attachCardEvents(nearestEl);
+  attachCardEvents(document.getElementById("list"));
+}
+function updateMapSource() {
+  if (!map.getSource("places")) return;
+  map.getSource("places").setData({ type: "FeatureCollection", features: filteredPlaces() });
+}
+function setStart(point, fly) {
+  startPoint = point;
+  if (startMarker) startMarker.remove();
+  startMarker = new maplibregl.Marker({ color: "#dc2626" }).setLngLat(startPoint).addTo(map);
+  if (fly) map.flyTo({ center: startPoint, zoom: 12 });
+  renderList();
+}
+function drawLine(coords) {
+  if (map.getSource("route")) map.getSource("route").setData({ type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} });
+  else {
+    map.addSource("route", { type: "geojson", data: { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} } });
+    map.addLayer({ id: "route-line", type: "line", source: "route", paint: { "line-color": "#166534", "line-width": 4 } });
+  }
+}
+async function calculateRoute(destination, name) {
+  routeDestination = destination;
+  const panel = document.getElementById("route-panel");
+  panel.classList.add("visible");
+  const text = document.getElementById("route-text");
+  text.textContent = `To ${name}. Calculating ${routeMode} route...`;
+  // Amazon Location Routes, when configured.
+  if (config.apiKey && config.routeCalculatorName) {
+    try {
+      const url = `https://routes.geo.${config.region}.amazonaws.com/routes/v0/calculators/${config.routeCalculatorName}/calculate/route?key=${config.apiKey}`;
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ DeparturePosition: startPoint, DestinationPosition: destination, TravelMode: routeMode === "walking" ? "Walking" : "Car", IncludeLegGeometry: true }) });
+      if (!res.ok) throw new Error("Route request failed");
+      const data = await res.json();
+      const leg = data.Legs && data.Legs[0];
+      const summary = leg && leg.Summary;
+      if (summary) {
+        const miles = (summary.Distance / 1609.34).toFixed(1);
+        const mins = Math.round(summary.DurationSeconds / 60);
+        text.textContent = `To ${name} by ${routeMode}: ${miles} miles, about ${mins} minutes (Amazon Location Service).`;
+      }
+      const line = leg && leg.Geometry && leg.Geometry.LineString;
+      if (line) drawLine(line);
+      else drawLine([startPoint, destination]);
+      return;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  // Local fallback: straight line, clearly labelled, no invented drive time.
+  const miles = haversineMiles(startPoint, destination).toFixed(1);
+  text.textContent = `To ${name} by ${routeMode}: ${miles} miles straight-line. Driving and walking times need an Amazon Location route calculator key in config.js. This line is a straight line, not a road route.`;
+  drawLine([startPoint, destination]);
+  map.fitBounds([startPoint, destination], { padding: 60 });
+}
+async function findByAddress() {
+  const text = document.getElementById("address").value.trim();
+  if (!text) return alert("Type an address first, for example 1200 Portage St, Kalamazoo.");
+  // Lambda endpoint, when deployed, returns { longitude, latitude, nearest: [...] }.
+  if (config.lambdaEndpoint) {
+    try {
+      const res = await fetch(config.lambdaEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: text }) });
+      const data = await res.json();
+      if (data.longitude && data.latitude) { setStart([data.longitude, data.latitude], true); return; }
+    } catch (err) { console.error(err); }
+  }
+  // Amazon Location Place Index search, when a key is set.
+  if (config.apiKey && config.placeIndexName) {
+    try {
+      const url = `https://places.geo.${config.region}.amazonaws.com/places/v0/indexes/${config.placeIndexName}/search/text?key=${config.apiKey}`;
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Text: text, BiasPosition: startPoint, MaxResults: 1 }) });
+      const data = await res.json();
+      const result = data.Results && data.Results[0];
+      if (result && result.Place && result.Place.Geometry && result.Place.Geometry.Point) {
+        setStart(result.Place.Geometry.Point, true); return;
+      }
+    } catch (err) { console.error(err); }
+  }
+  alert("Address search needs an Amazon Location Place Index key or a Lambda endpoint in config.js. For now, click the map to set your starting point, or use your location.");
+}
+async function init() {
+  const res = await fetch("data/places.geojson");
+  const geojson = await res.json();
+  allPlaces = geojson.features || [];
+  const useAmazon = Boolean(config.apiKey);
+  const style = useAmazon && config.amazonStyleUrl ? config.amazonStyleUrl() : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+  if (useAmazon) document.getElementById("basemap-notice").textContent = "Amazon Location Service basemap is active.";
+  map = new maplibregl.Map({ container: "map", style, center: [-85.58, 42.28], zoom: 11.5 });
+  map.addControl(new maplibregl.NavigationControl(), "top-right");
+  map.on("load", () => {
+    map.addSource("places", { type: "geojson", data: { type: "FeatureCollection", features: filteredPlaces() }, cluster: true, clusterMaxZoom: 13, clusterRadius: 45 });
+    map.addLayer({ id: "clusters", type: "circle", source: "places", filter: ["has", "point_count"], paint: { "circle-color": "#166534", "circle-radius": ["step", ["get", "point_count"], 18, 10, 26, 25, 34], "circle-opacity": 0.9 } });
+    map.addLayer({ id: "cluster-count", type: "symbol", source: "places", filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count"], "text-size": 13 }, paint: { "text-color": "#fff" } });
+    map.addLayer({ id: "points", type: "circle", source: "places", filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["match", ["get", "category"], "soup_kitchen", "#b45309", "pantry", "#1d4ed8", "#334155"], "circle-radius": 9, "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+    map.on("click", "clusters", (e) => {
+      const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
+      const clusterId = features[0].properties.cluster_id;
+      map.getSource("places").getClusterExpansionZoom(clusterId, (err, zoom) => { if (!err) map.easeTo({ center: features[0].geometry.coordinates, zoom }); });
+    });
+    map.on("click", "points", (e) => {
+      const props = e.features[0].properties;
+      // service_types arrives as a string from the GeoJSON source, so the popup uses category here.
+      new maplibregl.Popup().setLngLat(e.lngLat).setHTML(popupHtml({ ...props, service_types: props.category === "soup_kitchen" ? ["soup_kitchen"] : ["emergency_pantry"] })).addTo(map);
+    });
+    map.on("mouseenter", "points", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "points", () => { map.getCanvas().style.cursor = ""; });
+    map.on("click", (e) => {
+      if (e.originalEvent.target.closest(".maplibregl-popup")) return;
+      setStart([e.lngLat.lng, e.lngLat.lat], false);
+    });
+    renderList();
+  });
+  document.querySelectorAll("[data-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-filter]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = btn.dataset.filter;
+      updateMapSource(); renderList();
+    });
+  });
+  document.getElementById("search").addEventListener("input", (e) => { searchText = e.target.value.trim().toLowerCase(); updateMapSource(); renderList(); });
+  document.getElementById("find-nearest").addEventListener("click", findByAddress);
+  document.getElementById("address").addEventListener("keydown", (e) => { if (e.key === "Enter") findByAddress(); });
+  document.getElementById("locate").addEventListener("click", () => {
+    if (!navigator.geolocation) return alert("Geolocation is not available in this browser.");
+    navigator.geolocation.getCurrentPosition((pos) => setStart([pos.coords.longitude, pos.coords.latitude], true), () => alert("Location permission was denied. Click the map to set a starting point instead."));
+  });
+  document.getElementById("reset-start").addEventListener("click", () => { if (startMarker) { startMarker.remove(); startMarker = null; } startPoint = [-85.5872, 42.2917]; map.flyTo({ center: [-85.58, 42.28], zoom: 11.5 }); renderList(); });
+  document.getElementById("route-driving").addEventListener("click", () => { routeMode = "driving"; if (routeDestination) calculateRoute(routeDestination, "that place"); });
+  document.getElementById("route-walking").addEventListener("click", () => { routeMode = "walking"; if (routeDestination) calculateRoute(routeDestination, "that place"); });
+}
+init().catch((err) => {
+  document.getElementById("list").innerHTML = "<p>Could not load the places data. If you opened this file directly, serve the folder with a local web server instead, for example: python3 -m http.server 8000</p>";
+  console.error(err);
+});
+</script>
+</body>
+</html>
