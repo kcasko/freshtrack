@@ -101,19 +101,38 @@ def check(reply, now=None):
     return problems + unsupported_promises(reply)
 
 
-# Promises about what pantries ask. Nothing in the dataset supports them, and a
+# Promises about immigration status. No source in the dataset addresses it, and a
 # wrong one can put someone at risk, so they always go to the fact-checker.
 UNSUPPORTED_PROMISE = re.compile(
     r"(do(es)?n'?t|do(es)? not|won'?t|will not|never)\s+(ask|check|require|need)\w*\s+(about\s+|for\s+)?(your\s+)?"
-    r"(immigration|citizenship|papers|documents|id\b|income)"
+    r"(immigration|citizenship|papers)"
     r"|no\s+(preguntan|piden|revisan)\w*\s+(por\s+|sobre\s+)?(el\s+|tu\s+|su\s+)?(estatus|estado|situación)\s+migratori"
     r"|(?<!if )(?<!whether )\b(you|everyone)\s+(qualify|are eligible|will be served)",
     re.IGNORECASE,
 )
 
 
+# "No ID needed" is true for some places (Loaves & Fishes publishes it) and
+# unknown for others, so it passes only when the place it is said about says so.
+NO_ID_CLAIM = re.compile(
+    r"\b(no|without)\s+(an?\s+)?(id|ids|identification|paperwork|income (check|verification))\b"
+    r"|\b(don'?t|do not|doesn'?t|does not|won'?t|will not)\s+(need|require|ask for|check)\s+(an?\s+|your\s+)?(id|identification|paperwork|income)\b"
+    r"|\b(id|identification)\s+(is\s+)?not\s+(needed|required)\b"
+    r"|\bsin\s+(identificaci[oó]n|id)\b|\bno\s+(necesitas?|piden|requieren?)\s+(una\s+)?(identificaci[oó]n|id)\b",
+    re.IGNORECASE,
+)
+SITE_SAYS_NO_ID = re.compile(r"\bno\b[^.]{0,40}\bIDs?\b|\bno cost, ID\b", re.IGNORECASE)
+
+
 def unsupported_promises(reply):
-    return [f"unsupported promise: '{m.group(0)}'" for m in UNSUPPORTED_PROMISE.finditer(reply)]
+    problems = [f"unsupported promise: '{m.group(0)}'" for m in UNSUPPORTED_PROMISE.finditer(reply)]
+    supported = {s["name"] for s in data.sites()
+                 if SITE_SAYS_NO_ID.search(" ".join(str(s.get(k, "")) for k in ("hours_note", "note")))}
+    for m in NO_ID_CLAIM.finditer(reply):
+        named = sites_for_phone(reply, m.start(), m.end())
+        if not named & supported:
+            problems.append(f"unsupported promise: '{m.group(0)}' is not stated by {' / '.join(sorted(named)) or 'any named place'}")
+    return problems
 
 
 def phone_owners():

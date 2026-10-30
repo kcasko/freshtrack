@@ -1,5 +1,5 @@
 {
-  "_about": "Structured opening windows for each site in places.geojson, transcribed by hand from each site's hours_note on October 30, 2026. Days use Mon..Sun. 'weeks' limits a window to the nth weekday of the month (1-5), 'exclude_weeks' removes some. A null start or end means the source did not give that time. 'conflict' means sources disagree, so the agent must always tell people to call first. 'aliases' are the short names a reply may use for a site; the guard uses them to check that a phone number belongs to the site it is given for.",
+  "_about": "Structured opening windows for each site in places.geojson, transcribed by hand from each site's hours_note on October 30, 2026. Days use Mon..Sun. 'weeks' limits a window to the nth weekday of the month (1-5), 'exclude_weeks' removes some. A null start or end means the source did not give that time. 'conflict' means sources disagree, so the agent must always tell people to call first. 'aliases' are the short names a reply may use for a site; the guard uses them to check that a phone number belongs to the site it is given for. 'dates' lists the exact days a window runs (mobile distributions). 'visit_limit' and 'eligibility' carry rules the agent must pass on.",
   "sites": {
     "Kalamazoo Loaves & Fishes": {
       "kind": "call_to_schedule",
@@ -173,6 +173,17 @@
           ],
           "start": "13:00",
           "end": "14:30"
+        },
+        {
+          "dates": [
+            "2026-11-07",
+            "2026-11-21",
+            "2026-12-05",
+            "2026-12-19"
+          ],
+          "start": "12:00",
+          "end": "13:00",
+          "label": "Loaves & Fishes mobile distribution"
         }
       ],
       "aliases": [
@@ -215,23 +226,13 @@
           ],
           "start": "13:00",
           "end": "16:00"
-        },
-        {
-          "days": [
-            "Wed"
-          ],
-          "weeks": [
-            4
-          ],
-          "start": "13:00",
-          "end": null,
-          "label": "Mobile Food Initiative distribution"
         }
       ],
       "aliases": [
         "Salvation Army",
         "Ejército de Salvación"
-      ]
+      ],
+      "visit_limit": "Once every 90 days"
     },
     "Stone Church / New Genesis Pantry": {
       "conflict": true,
@@ -310,7 +311,332 @@
         "First Assembly"
       ]
     },
-    "Kalamazoo Gospel Mission": {
+    "Ministry with Community": {
+      "windows": [
+        {
+          "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+          ],
+          "start": "08:00",
+          "end": "09:00",
+          "label": "Breakfast"
+        },
+        {
+          "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+          ],
+          "start": "12:30",
+          "end": null,
+          "label": "Lunch; listed end 1:30pm or 2:30pm"
+        }
+      ],
+      "notes": "Boxed meals at the back door outside meal times; times not given.",
+      "aliases": [],
+      "conflict": true
+    },
+    "Comstock Middle School (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-10",
+            "2026-12-08"
+          ],
+          "start": "16:00",
+          "end": "17:30",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Comstock Middle School"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Galesburg United Methodist Church (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-05",
+            "2026-11-19",
+            "2026-12-03",
+            "2026-12-17"
+          ],
+          "start": "14:00",
+          "end": "15:30",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Galesburg United Methodist",
+        "Galesburg"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Portage Chapel Hill Church (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-10",
+            "2026-11-24",
+            "2026-12-08",
+            "2026-12-22"
+          ],
+          "start": "13:00",
+          "end": "14:00",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Chapel Hill Church",
+        "Chapel Hill"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Saint Andrew Community Church (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-14",
+            "2026-12-12"
+          ],
+          "start": "07:30",
+          "end": "09:00",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Saint Andrew Community Church",
+        "St. Andrew",
+        "Saint Andrew"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Haven Church (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-14",
+            "2026-11-21",
+            "2026-12-12",
+            "2026-12-19"
+          ],
+          "start": "09:00",
+          "end": "10:00",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Haven Church"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Family Health Center (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-19",
+            "2026-12-17"
+          ],
+          "start": "15:30",
+          "end": "17:30",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Family Health Center"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Heritage Christian Reformed Church (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-11-21",
+            "2026-12-19"
+          ],
+          "start": "08:00",
+          "end": "09:00",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Heritage Christian Reformed",
+        "Heritage Church"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "Kalamazoo County Health & Human Services (mobile pantry)": {
+      "kind": "mobile",
+      "windows": [
+        {
+          "dates": [
+            "2026-10-30",
+            "2026-11-20",
+            "2026-12-18"
+          ],
+          "start": "14:00",
+          "end": "15:00",
+          "label": "Loaves & Fishes mobile distribution"
+        }
+      ],
+      "aliases": [
+        "Kalamazoo County Health & Human Services",
+        "Health & Human Services"
+      ],
+      "notes": "No ID, income check, or appointment. Does not count toward the twice-a-month pantry limit."
+    },
+    "The Gathering Harvest Food Pantry": {
+      "windows": [
+        {
+          "days": [
+            "Tue"
+          ],
+          "start": "09:00",
+          "end": null,
+          "label": "Produce stand"
+        },
+        {
+          "days": [
+            "Fri"
+          ],
+          "weeks": [
+            1
+          ],
+          "start": "15:00",
+          "end": null,
+          "label": "Drive-up distribution"
+        },
+        {
+          "days": [
+            "Sat"
+          ],
+          "weeks": [
+            3
+          ],
+          "start": "11:00",
+          "end": null,
+          "label": "Drive-up distribution"
+        }
+      ],
+      "aliases": [
+        "Gathering Harvest"
+      ]
+    },
+    "Christian Neighbors Food Pantry (Plainwell)": {
+      "windows": [
+        {
+          "days": [
+            "Mon"
+          ],
+          "start": "10:00",
+          "end": "12:00",
+          "label": "Drive-thru"
+        },
+        {
+          "days": [
+            "Mon"
+          ],
+          "start": "16:00",
+          "end": "18:00",
+          "label": "Drive-thru"
+        },
+        {
+          "days": [
+            "Tue"
+          ],
+          "start": "10:00",
+          "end": "12:00"
+        },
+        {
+          "days": [
+            "Thu"
+          ],
+          "start": "14:00",
+          "end": "17:00"
+        }
+      ],
+      "service_area": "Otsego, Plainwell, and Martin school districts only",
+      "visit_limit": "Once per calendar month",
+      "aliases": [
+        "Christian Neighbors"
+      ]
+    },
+    "Royal Estates Mobile Pantry": {
+      "conflict": true,
+      "windows": [
+        {
+          "days": [
+            "Thu"
+          ],
+          "weeks": [
+            4
+          ],
+          "start": "16:00",
+          "end": "18:00",
+          "label": "Mobile pantry; may move for holidays"
+        }
+      ],
+      "aliases": [
+        "Royal Estates"
+      ]
+    },
+    "Bronco Food Pantry (WMU students only)": {
+      "windows": [
+        {
+          "days": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu"
+          ],
+          "start": "10:00",
+          "end": "15:00"
+        },
+        {
+          "days": [
+            "Fri"
+          ],
+          "start": "10:00",
+          "end": "14:00"
+        }
+      ],
+      "eligibility": "Registered WMU students only; bring Bronco ID",
+      "visit_limit": "About once every two weeks",
+      "aliases": [
+        "Bronco Food Pantry",
+        "Bronco Pantry",
+        "WMU food pantry"
+      ]
+    },
+    "Milestone Senior Services (senior meals)": {
+      "kind": "call_to_enroll",
+      "windows": [],
+      "notes": "Call to enroll for home-delivered meals or senior lunch sites; no walk-in hours listed.",
+      "aliases": [
+        "Milestone Senior Services",
+        "Milestone",
+        "Meals on Wheels"
+      ]
+    },
+    "Kalamazoo Gospel Ministries (Gospel Mission)": {
       "conflict": true,
       "windows": [
         {
@@ -352,47 +678,15 @@
             "Sun"
           ],
           "start": "16:30",
-          "end": "18:30",
+          "end": "18:00",
           "label": "Dinner"
         }
       ],
       "aliases": [
-        "Gospel Mission"
+        "Gospel Mission",
+        "Gospel Ministries",
+        "Kalamazoo Gospel Mission"
       ]
-    },
-    "Ministry with Community": {
-      "windows": [
-        {
-          "days": [
-            "Mon",
-            "Tue",
-            "Wed",
-            "Thu",
-            "Fri",
-            "Sat",
-            "Sun"
-          ],
-          "start": "08:00",
-          "end": "09:00",
-          "label": "Breakfast"
-        },
-        {
-          "days": [
-            "Mon",
-            "Tue",
-            "Wed",
-            "Thu",
-            "Fri",
-            "Sat",
-            "Sun"
-          ],
-          "start": "13:30",
-          "end": "14:20",
-          "label": "Lunch"
-        }
-      ],
-      "notes": "Boxed meals at the back door outside meal times; times not given.",
-      "aliases": []
     }
   }
 }

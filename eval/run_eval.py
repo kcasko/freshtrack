@@ -54,6 +54,8 @@ def run_search_cases():
             ok &= len(result["open_now_or_later_today"]) == case["expect_available_count"]
         if "expect_nearest_names" in case:
             ok &= [s["name"] for s in result["nearest_any_day"]] == case["expect_nearest_names"]
+        if "expect_nearest_set" in case:
+            ok &= sorted(s["name"] for s in result["nearest_any_day"]) == sorted(case["expect_nearest_set"])
         if "expect_far" in case:
             ok &= bool(result.get("far_from_sites")) == case["expect_far"]
         if "expect_first_available" in case:

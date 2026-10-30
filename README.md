@@ -116,15 +116,23 @@ No message text, location, or IP address is stored. The usage table holds a date
 
 ## Dataset
 
-`data/places.geojson` is the dataset. Starter set, October 30, 2026.
+`data/places.geojson` lists 29 places, each with its own source link and the date it was checked. `data/schedules.json` turns each place's hours into rules the code can test.
 
-- 14 emergency pantries in Kalamazoo, Portage, and Comstock
-- 2 soup kitchens in downtown Kalamazoo: Kalamazoo Gospel Mission and Ministry with Community
-- Senior and mobile programs noted on Kalamazoo Loaves & Fishes, and a mobile distribution noted at the Salvation Army
+- **17 food pantries and grocery programs** in Kalamazoo, Portage, Comstock, and Parchment, including Christian Neighbors in Plainwell (just over the Allegan County line, for its service area only) and the WMU Bronco Food Pantry (students only)
+- **2 free meal programs** downtown: Kalamazoo Gospel Ministries (Gospel Mission) and Ministry with Community
+- **Mobile food distributions:** 8 Loaves & Fishes sites plus mobile dates at Sunnyside, all with exact November-December 2026 dates from the July-December 2026 schedule, and the Royal Estates mobile pantry. They need no ID or appointment.
+- **Senior meals:** Milestone Senior Services home-delivered meals and senior lunch sites, and the Loaves & Fishes senior program
 
-Primary local sources: South Michigan Food Bank Kalamazoo County Resource Guide, Kalamazoo Loaves & Fishes, and local resource directories. Each card links to its source where one was found.
+### How the data was checked (October 30, 2026)
 
-Dataset layers named for the next version, not yet in this file: Feeding America open agency data, USDA Food Access Research Atlas, and Michigan Open Data emergency food sites. Those would add a low-access area layer to compare against pantry locations, but only after their licenses, file formats, and tract boundaries are checked. They are not claimed as current data here.
+A November 2025 county food resource list had about 35 places. Each one was cross-checked against what is published now. **A place was added only if a current source confirmed it:** its own website, the Loaves & Fishes 2026 schedule, WMU's pantry page, or 2026 reporting.
+
+- **Added:** 8 Loaves & Fishes mobile sites (plus mobile dates at Sunnyside), The Gathering Harvest, Christian Neighbors (its own site lists different hours than the 2025 list, and those are what FreshTrack uses), the Royal Estates mobile pantry, the Bronco Food Pantry, and Milestone Senior Services.
+- **Corrected:** Ministry with Community's phone (269-343-6073) and lunch start (12:30pm). Gospel Mission's dinner now ends at 6pm, and the mission is now named Kalamazoo Gospel Ministries. The Salvation Army mobile distribution ended in July 2026, and the Salvation Army's own once-every-90-days rule was added.
+- **Left out, because no current source could be found:** the African Community pantry, Eastside Neighborhood Association, St. Joseph, Greenwood Reformed, Trinity Lutheran, Church of Christ Parchment, Portage Community Center, Allen Chapel AME, Calvary Bible, Wakeshma, Parchment UMC, Prince of Peace, Colonial Acres, St. Augustine, Pagans in Need, Fresh Fire AME, First United Methodist, and Bronco Boxes. They can be added once a current schedule is published or confirmed by phone.
+- **Not used as current:** the South Michigan Food Bank Kalamazoo guide online was last modified in December 2024. It is cited only where another source agrees with it.
+
+Coordinates come from the Amazon Location Places API, not from guessing.
 
 This is not an exhaustive directory. Hours and distribution times change. Most hours here come from secondary directories and resource lists, not from a direct call to each site, and cards flag conflicts plainly, for example Twelve Baskets, Stone Church, and Westwood.
 

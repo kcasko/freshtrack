@@ -13,14 +13,15 @@
         "category": "pantry",
         "hours_note": "Office and call center Mon-Fri 8am-4pm. Grocery Pantry scheduling via Call Center Mon-Fri 9am-4pm, twice per calendar month, with curbside pickup, in-person shopping, or free home delivery in Kalamazoo County, per Loaves & Fishes. Call 269-343-3663 before you go.",
         "name": "Kalamazoo Loaves & Fishes",
-        "note": "Largest provider of supplemental food in Kalamazoo County, with a network of pantries and distributions. Senior Commodities Program: people over 60 can receive supplemental groceries at local community centers and residential sites, call to learn how to apply. Mobile Food Initiative: supplemental groceries at sites throughout the county during the month, no pre-registration stated, call for the current schedule.",
+        "note": "Largest provider of supplemental food in Kalamazoo County, with a network of pantries and distributions. Senior Commodities Program: people over 60 can receive supplemental groceries at local community centers and residential sites, call to learn how to apply. Mobile Food Initiative: supplemental groceries at sites throughout the county during the month, no pre-registration stated, call for the current schedule. No ID or income verification required, per Loaves & Fishes.",
         "phone": "269-343-3663",
         "source": "https://kzoolf.org/",
         "service_types": [
           "emergency_pantry",
           "senior_program",
           "mobile_program"
-        ]
+        ],
+        "checked": "2026-10-30"
       },
       "type": "Feature"
     },
@@ -167,11 +168,13 @@
         "category": "pantry",
         "hours_note": "Mon 5:30-7pm (no 5th Monday), Wed 5:45-7pm (not 1st or 5th Wednesday), Thu 1-2:30pm, per directory. Call ahead to confirm.",
         "name": "Sunnyside United Methodist Church, Loaves and Fishes Pantry",
-        "note": "All Kalamazoo County residents eligible for a four-day food supply once every 30 days, per directory.",
+        "note": "All Kalamazoo County residents eligible for a four-day food supply once every 30 days, per directory. Loaves & Fishes mobile distribution noon-1pm on Nov 7, Nov 21, Dec 5, and Dec 19, 2026: no ID or appointment, does not count toward monthly visits.",
         "source": "https://www.freefood.org/l/mi_49048_sunnyside-united-methodist-church-loafs-and-fish-pantry",
         "service_types": [
-          "emergency_pantry"
-        ]
+          "emergency_pantry",
+          "mobile_program"
+        ],
+        "checked": "2026-10-30"
       },
       "type": "Feature"
     },
@@ -208,14 +211,15 @@
       "properties": {
         "address": "1700 S Burdick St, Kalamazoo, MI 49001",
         "category": "pantry",
-        "hours_note": "Mon, Wed, Fri 9am-noon; Tue, Thu 1-4pm, per South Michigan Food Bank guide. Call ahead to confirm.",
+        "hours_note": "Mon, Wed, Fri 9am-noon; Tue, Thu 1-4pm, per the South Michigan Food Bank guide and a November 2025 county list. Call 269-344-6119 to confirm.",
         "name": "Salvation Army Kalamazoo",
-        "note": "Food pantry listed in the South Michigan Food Bank Kalamazoo County Resource Guide. Mobile Food Initiative distribution also listed at the Salvation Army on the 4th Wednesday of the month at 1pm, per Bethany Kalamazoo, call to confirm.",
+        "note": "Food once every 90 days, amount based on household size; walk-ins welcome, per the Salvation Army. Its Loaves & Fishes mobile distribution ended in July 2026.",
         "source": "https://smfoodbank.org/wp-content/uploads/Kalamazoo-Resource-Guide-7.pdf",
         "service_types": [
-          "emergency_pantry",
-          "mobile_program"
-        ]
+          "emergency_pantry"
+        ],
+        "phone": "269-344-6119",
+        "checked": "2026-10-30"
       },
       "type": "Feature"
     },
@@ -315,14 +319,15 @@
       "properties": {
         "address": "448 N Burdick St, Kalamazoo, MI 49007",
         "category": "soup_kitchen",
-        "hours_note": "Free daily meals, 7 days a week, per local resource list: Breakfast 8-9am, Lunch 1:30-2:30pm, Dinner 4:30-6:30pm. Other sources list different meal windows, so call 269-345-2974 to confirm.",
-        "name": "Kalamazoo Gospel Mission",
+        "hours_note": "Free meals. Dinner 4:30-6pm per the South Michigan Food Bank guide and a November 2025 county list; older listings give breakfast 8-9am and lunch 1:30-2:30pm. Also a winter warming shelter that accepts families. Call 269-345-2974 to confirm.",
+        "name": "Kalamazoo Gospel Ministries (Gospel Mission)",
         "note": "Soup kitchen and meal service. Serves over 4,000 meals per week, per its listing.",
         "service_types": [
           "soup_kitchen"
         ],
         "source": "https://www.thehouseofshiloh.org/resources",
-        "phone": "269-345-2974"
+        "phone": "269-345-2974",
+        "checked": "2026-10-30"
       },
       "type": "Feature"
     },
@@ -337,16 +342,316 @@
       "properties": {
         "address": "500 N Edwards St, Kalamazoo, MI 49007",
         "category": "soup_kitchen",
-        "hours_note": "Free daily meals, 7 days a week, per local resource list: Breakfast 8-9am, Lunch 1:30-2:20pm. Boxed meals at the back door outside meal times, per South Michigan Food Bank guide. Call 269-343-5880 to confirm.",
+        "hours_note": "Free meals daily. Breakfast 8-9am. Lunch from 12:30pm; sources list it ending at 1:30pm or 2:30pm. Boxed meals at the back door outside meal times. Building open about 6:30am-4pm, 7 days a week. Call 269-343-6073 to confirm.",
         "name": "Ministry with Community",
         "note": "Soup kitchen and meal service in downtown Kalamazoo.",
         "service_types": [
           "soup_kitchen"
         ],
         "source": "https://www.thehouseofshiloh.org/resources",
-        "phone": "269-343-5880"
+        "phone": "269-343-6073",
+        "checked": "2026-10-30"
       },
       "type": "Feature"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.51616,
+          42.31641
+        ]
+      },
+      "properties": {
+        "name": "Comstock Middle School (mobile pantry)",
+        "address": "3100 N 26th St, Kalamazoo, MI 49048",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 4pm-5:30pm on Nov 10, Dec 8, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.41897,
+          42.28758
+        ]
+      },
+      "properties": {
+        "name": "Galesburg United Methodist Church (mobile pantry)",
+        "address": "111 W Battle Creek St, Galesburg, MI 49053",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 2pm-3:30pm on Nov 5, Nov 19, Dec 3, Dec 17, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.61471,
+          42.21471
+        ]
+      },
+      "properties": {
+        "name": "Portage Chapel Hill Church (mobile pantry)",
+        "address": "7028 Oakland Dr, Portage, MI 49024",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 1pm-2pm on Nov 10, Nov 24, Dec 8, Dec 22, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.53325,
+          42.25101
+        ]
+      },
+      "properties": {
+        "name": "Saint Andrew Community Church (mobile pantry)",
+        "address": "3631 Covington Rd, Kalamazoo, MI 49001",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 7:30am-9am on Nov 14, Dec 12, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.52038,
+          42.33788
+        ]
+      },
+      "properties": {
+        "name": "Haven Church (mobile pantry)",
+        "address": "5350 N Sprinkle Rd, Kalamazoo, MI 49004",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 9am-10am on Nov 14, Nov 21, Dec 12, Dec 19, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.58439,
+          42.30312
+        ]
+      },
+      "properties": {
+        "name": "Family Health Center (mobile pantry)",
+        "address": "117 W Paterson St, Kalamazoo, MI 49007",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 3:30pm-5:30pm on Nov 19, Dec 17, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.655,
+          42.26259
+        ]
+      },
+      "properties": {
+        "name": "Heritage Christian Reformed Church (mobile pantry)",
+        "address": "2857 S 11th St, Kalamazoo, MI 49009",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 8am-9am on Nov 21, Dec 19, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.57871,
+          42.27045
+        ]
+      },
+      "properties": {
+        "name": "Kalamazoo County Health & Human Services (mobile pantry)",
+        "address": "311 E Alcott St, Kalamazoo, MI 49001",
+        "category": "pantry",
+        "phone": "269-343-3663",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "Mobile food distribution 2pm-3pm on Oct 30, Nov 20, Dec 18, per the Kalamazoo Loaves & Fishes July-December 2026 schedule.",
+        "note": "Kalamazoo Loaves & Fishes Mobile Food Distribution. No income verification, ID, or appointment required. 5-7 supplemental grocery items per household. Does not count toward monthly pantry visits.",
+        "source": "https://kzoolf.org/files/2026/06/MFI_July-Dec_26_ENG.pdf",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.5482,
+          42.30286
+        ]
+      },
+      "properties": {
+        "name": "The Gathering Harvest Food Pantry",
+        "address": "2528 E Main St, Kalamazoo, MI 49048",
+        "category": "pantry",
+        "phone": "269-978-7685",
+        "service_types": [
+          "emergency_pantry"
+        ],
+        "hours_note": "Food Stand Tuesday at 9am: free fruits, vegetables, and breads. Drive-up food distribution 1st Friday of the month starting 3pm, and 3rd Saturday starting 11am, per its website. Call 269-978-7685 to confirm.",
+        "note": "Drive-up distributions; produce stand on Tuesdays.",
+        "source": "https://www.tghfoodpantry.org/",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.66303,
+          42.44138
+        ]
+      },
+      "properties": {
+        "name": "Christian Neighbors Food Pantry (Plainwell)",
+        "address": "282 12th St, Plainwell, MI 49080",
+        "category": "pantry",
+        "phone": "269-685-4166",
+        "service_types": [
+          "emergency_pantry"
+        ],
+        "hours_note": "Mon 10am-noon and 4-6pm (drive-thru), Tue 10am-noon, Thu 2-5pm; closed Wed and Fri-Sun, per its website. Food pantry questions: 269-685-4166 ext. 103.",
+        "note": "Serves the Otsego, Plainwell, and Martin school districts. Once per calendar month, with a current intake form on file. Outside that area, call 2-1-1.",
+        "source": "https://christianneighbors.org/food-pantry/",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.67587,
+          42.38028
+        ]
+      },
+      "properties": {
+        "name": "Royal Estates Mobile Pantry",
+        "address": "8300 Ravine Rd, Kalamazoo, MI 49009",
+        "category": "pantry",
+        "phone": "269-685-4166",
+        "service_types": [
+          "mobile_program"
+        ],
+        "hours_note": "4th Thursday of each month, 4-6pm or until food runs out; may move a week earlier for holidays (for example Thanksgiving), per Christian Neighbors. Follow the arrow signs on site.",
+        "note": "Open to all. No cost, ID, or paperwork. Run by Christian Neighbors with the South Michigan Food Bank.",
+        "source": "https://christianneighbors.org/food-pantry/#royal",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.61043,
+          42.28461
+        ]
+      },
+      "properties": {
+        "name": "Bronco Food Pantry (WMU students only)",
+        "address": "Faunce Student Services Building, 1903 W Michigan Ave, Kalamazoo, MI 49008",
+        "category": "pantry",
+        "phone": "269-387-1000",
+        "service_types": [
+          "emergency_pantry"
+        ],
+        "hours_note": "Fall hours Mon-Thu 10am-3pm, Fri 10am-2pm, per WMU. Kiva Room, rear entrance of Faunce Student Services near the Seita Scholars offices. Closures are posted on its Instagram.",
+        "note": "For registered WMU students only, with Bronco ID. About once every two weeks.",
+        "source": "https://wmich.edu/invisibleneed/food",
+        "checked": "2026-10-30"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.57979,
+          42.28257
+        ]
+      },
+      "properties": {
+        "name": "Milestone Senior Services (senior meals)",
+        "address": "918 Jasper St, Kalamazoo, MI 49001",
+        "category": "pantry",
+        "phone": "269-382-0515",
+        "service_types": [
+          "senior_program"
+        ],
+        "hours_note": "Call 269-382-0515 to enroll. Meals on Wheels home delivery runs weekdays from the Jasper St office. Free weekday senior lunches at sites in Kalamazoo and Portage (suggested donation for those able).",
+        "note": "For older adults. Home-delivered meals for people who are homebound, and group lunches at senior meal sites. A Food for All option offers delivered meals to residents who don't qualify for grant-funded meals.",
+        "source": "https://secondwavemedia.com/march-for-meals-month-celebrates-63-years-of-delivering-more-than-food-in-southwest-michigan/",
+        "checked": "2026-10-30"
+      }
     }
   ],
   "metadata": {

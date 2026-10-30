@@ -46,11 +46,15 @@ def find_site(name):
     for site in sites():
         if site["name"].lower() == lowered:
             return site
+    # Prefer the longest matching name, so "Comstock Middle School" doesn't
+    # match the short name "Comstock" of the community center.
+    best, best_len = None, 0
     for site in sites():
         names = [site["name"].lower(), *(a.lower() for a in site["schedule"].get("aliases", []))]
-        if any(lowered in n or n in lowered for n in names):
-            return site
-    return None
+        for n in names:
+            if (lowered in n or n in lowered) and len(n) > best_len:
+                best, best_len = site, len(n)
+    return best
 
 
 def haversine_miles(a, b):
@@ -83,6 +87,9 @@ def format_time(text):
 
 
 def window_applies(window, day):
+    # Mobile distributions run on listed dates rather than a weekly rule.
+    if window.get("dates"):
+        return day.isoformat() in window["dates"]
     if DAYS[day.weekday()] not in window["days"]:
         return False
     week = week_of_month(day)
@@ -94,7 +101,11 @@ def window_applies(window, day):
 
 
 def describe_window(window):
-    days = "/".join(window["days"]) if len(window["days"]) < 7 else "Every day"
+    if window.get("dates"):
+        listed = [dt.date.fromisoformat(d) for d in window["dates"]]
+        days = ", ".join(f"{d:%a %b} {d.day}" for d in listed)
+    else:
+        days = "/".join(window["days"]) if len(window["days"]) < 7 else "Every day"
     if window.get("weeks"):
         days = " and ".join(ORDINALS[w] for w in window["weeks"]) + " " + days
     if window.get("exclude_weeks"):

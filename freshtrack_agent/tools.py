@@ -50,7 +50,7 @@ def _site_summary(site, start, moment):
         "hours_as_published": site.get("hours_note"),
         "sources_disagree_call_first": bool(schedule.get("conflict")),
     }
-    for key in ("appointment_only", "delivery", "service_area", "bring", "kind", "notes"):
+    for key in ("appointment_only", "delivery", "service_area", "eligibility", "visit_limit", "bring", "kind", "notes"):
         if schedule.get(key):
             summary[key] = schedule[key]
     return summary
