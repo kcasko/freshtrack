@@ -3,136 +3,303 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FreshTrack: Kalamazoo Food Bank and Mobile Pantry Access</title>
+<title>FreshTrack · Free food in Kalamazoo County</title>
+<meta name="description" content="Find free groceries and hot meals in Kalamazoo County, Michigan. Ask in any language what's open near you right now.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="config.js"></script>
 <style>
+  :root {
+    --paper: #f6f4ee;
+    --surface: #fffefb;
+    --ink: #1a1f1c;
+    --muted: #5b625d;
+    --rule: #dcd8cc;
+    --green: #1f5135;
+    --green-dark: #163b27;
+    --green-tint: #e6eee8;
+    --marigold: #d9931c;
+    --marigold-tint: #fbf0d9;
+    --alert: #9b2c1f;
+    --header-h: 64px;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #1f2937; }
-  header { padding: 16px 20px 8px; max-width: 1100px; margin: 0 auto; }
-  h1 { margin: 0 0 6px; font-size: 30px; }
-  p { margin: 6px 0; line-height: 1.5; }
-  .notice { background: #fff7ed; border: 1px solid #fed7aa; padding: 10px 12px; border-radius: 8px; }
-  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 20px; max-width: 1100px; margin: 0 auto; }
-  .controls button, .controls input { font-size: 15px; padding: 8px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; cursor: pointer; }
-  .controls button.active { background: #166534; color: #fff; border-color: #166534; }
-  .controls input { border-radius: 8px; flex: 1 1 220px; cursor: text; }
-  main { display: grid; grid-template-columns: 1fr 380px; gap: 0; max-width: 1100px; margin: 0 auto 20px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-  #map { height: 640px; min-width: 0; }
-  aside { padding: 14px; overflow-y: auto; max-height: 640px; background: #f8fafc; }
-  .place { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
-  .place h3 { margin: 0 0 4px; font-size: 16px; }
-  .place button { margin-top: 6px; padding: 7px 11px; border-radius: 999px; border: 1px solid #166534; background: #166534; color: #fff; cursor: pointer; }
-  .tag { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: #dbeafe; margin-right: 4px; }
-  .tag.soup { background: #fef3c7; }
-  #route-panel { background: #fff; border: 1px solid #86efac; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.5 "Public Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--green); }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* Header */
+  .masthead {
+    height: var(--header-h);
+    display: flex; align-items: center; gap: 20px;
+    padding: 0 24px;
+    background: var(--green);
+    color: #fff;
+  }
+  .wordmark { font-weight: 800; font-size: 22px; letter-spacing: -0.02em; margin: 0; }
+  .wordmark span { color: var(--marigold); }
+  .masthead .where { font-size: 15px; opacity: .85; border-left: 1px solid rgba(255,255,255,.3); padding-left: 20px; }
+  .masthead .help { margin-left: auto; font-size: 15px; color: #fff; text-decoration: none; }
+  .masthead .help strong { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* App layout: panel on the left, map fills the rest */
+  .app { display: grid; grid-template-columns: minmax(380px, 460px) 1fr; height: calc(100vh - var(--header-h)); }
+  .panel { display: flex; flex-direction: column; min-height: 0; background: var(--surface); border-right: 1px solid var(--rule); }
+  .map-wrap { position: relative; min-width: 0; }
+  #map { position: absolute; inset: 0; }
+  .legend {
+    position: absolute; left: 12px; bottom: 12px; display: flex; gap: 14px;
+    background: rgba(255,254,251,.94); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--muted);
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend i { width: 11px; height: 11px; border-radius: 50%; border: 2px solid #fffefb; box-shadow: 0 0 0 1px var(--rule); }
+  .legend i.ring { background: rgba(217,147,28,.18); border: 2px solid #d9931c; box-shadow: none; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--rule); padding: 0 24px; gap: 28px; flex: none; }
+  .tabs button {
+    background: none; border: 0; padding: 16px 0 13px; cursor: pointer;
+    font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent;
+  }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--green); }
+  .tab-body { flex: 1; min-height: 0; display: none; flex-direction: column; }
+  .tab-body.active { display: flex; }
+
+  /* Ask tab */
+  .chat-scroll { flex: 1; overflow-y: auto; padding: 24px; }
+  .intro h1 { font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 10px; font-weight: 800; }
+  .intro p { margin: 0 0 18px; color: var(--muted); }
+  .examples { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .examples li { border-bottom: 1px solid var(--rule); }
+  .examples button {
+    width: 100%; text-align: start; background: none; border: 0; padding: 12px 0;
+    cursor: pointer; display: flex; gap: 12px; align-items: baseline;
+  }
+  .examples button:hover .ex-text { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+  .ex-lang { flex: none; width: 64px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .trust { margin-top: 22px; font-size: 14px; color: var(--muted); }
+
+  .turn { margin-bottom: 22px; }
+  .turn.user { text-align: end; }
+  .turn.user .text {
+    display: inline-block; text-align: start; background: var(--green-tint); color: var(--green-dark);
+    padding: 10px 14px; border-radius: 4px; max-width: 88%; font-weight: 500;
+  }
+  .turn.bot .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .turn.bot { border-left: 3px solid var(--green); padding-left: 14px; }
+  .turn.bot.pending { border-left-color: var(--rule); color: var(--muted); }
+  .turn.bot.pending .text::after { content: ""; display: inline-block; width: 1.2em; text-align: start; animation: dots 1.2s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  .turn.error { border-left: 3px solid var(--alert); padding-left: 14px; }
+  .turn .meta { margin-top: 8px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+  .turn .meta .ok::before { content: "✓ "; color: var(--green); font-weight: 700; }
+  .place-links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .place-links button {
+    background: var(--marigold-tint); border: 1px solid #ecd29b; color: #6b4708;
+    padding: 3px 9px; border-radius: 3px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .place-links button:hover { border-color: var(--marigold); }
+
+  .composer { flex: none; border-top: 1px solid var(--rule); padding: 14px 24px 16px; background: var(--surface); }
+  .composer form { display: flex; gap: 8px; }
+  .composer input[type="text"] {
+    flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid #b9b5a8; border-radius: 4px; background: #fff; font-size: 16px;
+  }
+  .composer input[type="text"]:focus { border-color: var(--green); outline: none; box-shadow: 0 0 0 3px var(--green-tint); }
+  .btn {
+    background: var(--green); color: #fff; border: 0; border-radius: 4px; padding: 0 18px; font-weight: 700; cursor: pointer;
+  }
+  .btn:hover { background: var(--green-dark); }
+  .btn:disabled { opacity: .55; cursor: progress; }
+  .composer-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .clock { display: flex; align-items: center; gap: 6px; }
+  .clock input { border: 1px solid var(--rule); border-radius: 3px; padding: 2px 4px; font-size: 13px; background: #fff; }
+  .link-btn { background: none; border: 0; padding: 0; color: var(--green); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font-size: 13px; }
+
+  /* Browse tab */
+  .browse-controls { flex: none; padding: 16px 24px; border-bottom: 1px solid var(--rule); display: grid; gap: 10px; }
+  .segmented { display: flex; border: 1px solid #b9b5a8; border-radius: 4px; overflow: hidden; }
+  .segmented button { flex: 1; background: #fff; border: 0; border-left: 1px solid #d5d1c4; padding: 7px 4px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); }
+  .segmented button:first-child { border-left: 0; }
+  .segmented button.active { background: var(--green); color: #fff; }
+  .field { display: flex; gap: 6px; }
+  .field input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #b9b5a8; border-radius: 4px; background: #fff; font-size: 15px; }
+  .field .btn { padding: 0 12px; font-size: 14px; }
+  .start-line { font-size: 13px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+  .list-scroll { flex: 1; overflow-y: auto; }
+  .list-head { padding: 14px 24px 6px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .place { padding: 14px 24px; border-bottom: 1px solid var(--rule); cursor: pointer; }
+  .place:hover { background: #faf8f2; }
+  .place .kind { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--green); }
+  .place .kind.meal { color: #8a5a07; }
+  .place h3 { margin: 2px 0 2px; font-size: 17px; line-height: 1.3; }
+  .place .addr { color: var(--muted); font-size: 14px; }
+  .place .dist { float: right; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 8px; }
+  .place details { margin-top: 6px; font-size: 14px; }
+  .place summary { cursor: pointer; color: var(--green); font-weight: 600; }
+  .place details p { margin: 6px 0; }
+  .place .actions { margin-top: 8px; display: flex; gap: 16px; font-size: 14px; font-weight: 600; }
+  .place .actions a, .place .actions button { color: var(--green); background: none; border: 0; padding: 0; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+  #route-panel { display: none; margin: 14px 24px 0; padding: 12px 14px; background: var(--marigold-tint); border-left: 3px solid var(--marigold); font-size: 14px; }
   #route-panel.visible { display: block; }
-  footer { max-width: 1100px; margin: 0 auto; padding: 0 20px 30px; font-size: 14px; color: #475569; }
-  #chat { max-width: 1100px; margin: 0 auto 14px; border: 1px solid #bbf7d0; border-radius: 12px; background: #f0fdf4; padding: 14px 16px; }
-  #chat h2 { margin: 0 0 4px; font-size: 20px; }
-  #chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; margin: 10px 0; }
-  .msg { max-width: 85%; padding: 9px 12px; border-radius: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .msg.user { align-self: flex-end; background: #166534; color: #fff; border-bottom-right-radius: 4px; }
-  .msg.bot { align-self: flex-start; background: #fff; border: 1px solid #d1fae5; border-bottom-left-radius: 4px; }
-  .msg.bot.pending { color: #475569; font-style: italic; }
-  .msg.error { align-self: flex-start; background: #fef2f2; border: 1px solid #fecaca; }
-  .msg .meta { display: block; margin-top: 6px; font-size: 12px; color: #64748b; font-style: normal; }
-  .chat-row { display: flex; gap: 8px; }
-  .chat-row input { flex: 1; font-size: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; min-width: 0; }
-  .chat-row button, .chips button { font-size: 15px; padding: 9px 14px; border-radius: 999px; border: 1px solid #166534; background: #166534; color: #fff; cursor: pointer; }
-  .chat-row button:disabled { opacity: .6; cursor: wait; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .chips button { background: #fff; color: #166534; font-size: 13px; padding: 6px 10px; }
-  #chat details { margin-top: 8px; font-size: 14px; color: #475569; }
-  #chat details input { font-size: 14px; padding: 4px 6px; }
-  @media (max-width: 800px) {
-    main { grid-template-columns: 1fr; }
-    #map { height: 480px; }
-    aside { max-height: none; }
+  #route-panel p { margin: 0 0 8px; }
+  #route-panel .modes { display: flex; gap: 14px; }
+
+  .site-foot { padding: 18px 24px 22px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); }
+  .site-foot p { margin: 0 0 8px; }
+
+  /* Map popups */
+  .maplibregl-popup-content { font-family: "Public Sans", system-ui, sans-serif; padding: 12px 14px; border-radius: 4px; max-width: 280px; }
+  .maplibregl-popup-content h3 { margin: 0 0 4px; font-size: 15px; }
+  .maplibregl-popup-content p { margin: 4px 0; font-size: 13px; }
+
+  @media (max-width: 860px) {
+    :root { --header-h: 56px; }
+    .masthead { padding: 0 16px; gap: 12px; }
+    .masthead .where { display: none; }
+    .app { grid-template-columns: 1fr; grid-template-rows: 42vh auto; height: auto; }
+    .map-wrap { order: -1; height: 42vh; }
+    .legend { left: 8px; top: 8px; bottom: auto; gap: 10px; }
+    .panel { border-right: 0; min-height: 58vh; }
+    .chat-scroll, .list-scroll { overflow: visible; }
+    .tabs, .chat-scroll, .composer, .browse-controls, .list-head, .place, .site-foot { padding-left: 16px; padding-right: 16px; }
+    .composer { position: sticky; bottom: 0; }
+    .intro h1 { font-size: 22px; }
   }
 </style>
 </head>
 <body>
-<header>
-  <h1>FreshTrack</h1>
-  <p><strong>Food bank and mobile pantry access routing for Kalamazoo County.</strong> Find the nearest place to get groceries or a hot meal, filter by what you need, and get a route from where you are.</p>
-  <p class="notice" id="basemap-notice">Demo basemap is showing. Add your Amazon Location Service API key in <code>config.js</code> to switch to the Amazon Location basemap, Place Index search, and driving or walking routes. See README for the exact setup.</p>
-  <p><strong>Call before you go.</strong> Pantry and meal schedules change, and some sites only run on certain days of the month. If a card says hours differ between sources, trust the phone call, not the map.</p>
+<header class="masthead">
+  <p class="wordmark">Fresh<span>Track</span></p>
+  <span class="where">Free food help · Kalamazoo County, Michigan</span>
+  <a class="help" href="tel:211">Need more help? <strong>Dial 2-1-1</strong></a>
 </header>
 
-<section id="chat" aria-label="Ask FreshTrack">
-  <h2>Ask FreshTrack</h2>
-  <p>Ask in any language what's open near you. Add a ZIP code or street, or click the map to drop a pin first. Every time and phone number in a reply is checked against the dataset before you see it.</p>
-  <div id="chat-log" aria-live="polite"></div>
-  <form class="chat-row" id="chat-form">
-    <label for="chat-input" style="position:absolute;left:-9999px;">Your message</label>
-    <input id="chat-input" type="text" maxlength="500" autocomplete="off" placeholder="I'm in 49007 and need groceries tonight. No car.">
-    <button id="chat-send" type="submit">Send</button>
-  </form>
-  <div class="chips" id="chat-examples">
-    <button type="button">I'm in 49007 and need groceries tonight. No car.</button>
-    <button type="button">Hola, necesito comida para mis hijos hoy. Estoy en el 49001.</button>
-    <button type="button">أحتاج طعامًا الليلة. الرمز البريدي 49007</button>
-    <button type="button">My mom is 80 and can't leave the house. She lives in 49009.</button>
-  </div>
-  <details>
-    <summary>Demo clock</summary>
-    <p>Pantry hours depend on the day and time. To try a specific moment, set it here. Leave it empty to use the real time in Kalamazoo.
-      <input id="chat-now" type="datetime-local" aria-label="Pretend it is this date and time"></p>
-  </details>
-</section>
-
-<div class="controls">
-  <button data-filter="all" class="active">All food help</button>
-  <button data-filter="emergency_pantry">Emergency pantry</button>
-  <button data-filter="soup_kitchen">Soup kitchen</button>
-  <button data-filter="senior_program">Senior help</button>
-  <button data-filter="mobile_program">Mobile distribution</button>
-</div>
-<div class="controls">
-  <input id="address" type="text" placeholder="Type an address, for example 1200 Portage St, Kalamazoo">
-  <button id="find-nearest">Find nearest 3</button>
-  <input id="search" type="search" placeholder="Search by name, for example Loaves or Gospel">
-  <button id="locate">Use my location</button>
-  <button id="reset-start">Reset starting point</button>
-</div>
-
-<main>
-  <div id="map" aria-label="Map of food pantries, soup kitchens, and mobile food help in Kalamazoo County, Michigan"></div>
-  <aside>
-    <div id="route-panel">
-      <h2 style="margin:0 0 6px;font-size:18px;">Your route</h2>
-      <p id="route-text"></p>
-      <button id="route-driving">Driving</button>
-      <button id="route-walking">Walking</button>
+<div class="app">
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" aria-controls="tab-ask" id="tab-btn-ask">Ask</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-browse" id="tab-btn-browse">All places <span id="place-count"></span></button>
     </div>
-    <h2 id="list-heading">Nearest places</h2>
-    <p id="start-note">Starting point: downtown Kalamazoo. Click anywhere on the map, use your location, or type an address and choose Find nearest 3.</p>
-    <div id="nearest"></div>
-    <div id="list"></div>
-  </aside>
-</main>
 
-<footer>
-  <p>Data date: October 30, 2026. Sources are listed in each place card and in <code>data/places.geojson</code>. Primary local sources: South Michigan Food Bank Kalamazoo County Resource Guide, Kalamazoo Loaves &amp; Fishes, and local resource directories. Future dataset layers named in the submission: Feeding America agency data, USDA Food Access Research Atlas, and Michigan Open Data emergency food sites, to be added only after their licenses and tract-level files are checked.</p>
-  <p>How to read this map: emergency pantries give groceries to take home. Soup kitchens serve hot meals. Senior help and mobile distribution are programs, not always a fixed warehouse: Kalamazoo Loaves &amp; Fishes runs senior commodities at community centers and residential sites, and mobile distributions at sites around the county. Call 269-343-3663 if you are not sure where to start.</p>
-</footer>
+    <div class="tab-body active" id="tab-ask" role="tabpanel" aria-labelledby="tab-btn-ask">
+      <div class="chat-scroll" id="chat-scroll">
+        <div class="intro" id="chat-intro">
+          <h1>What's open near you, right now?</h1>
+          <p>Ask in your own words, in any language. Include a ZIP code or street, or tap the map to drop a pin. You'll get the closest open pantry or free meal, how far it is, and who to call.</p>
+          <ul class="examples" id="chat-examples">
+            <li><button type="button"><span class="ex-lang">English</span><span class="ex-text">I'm in 49007 and need groceries tonight. No car.</span></button></li>
+            <li><button type="button"><span class="ex-lang">Español</span><span class="ex-text">Hola, necesito comida para mis hijos hoy. Estoy en el 49001.</span></button></li>
+            <li><button type="button"><span class="ex-lang">العربية</span><span class="ex-text" dir="rtl">أحتاج طعامًا الليلة. الرمز البريدي 49007</span></button></li>
+            <li><button type="button"><span class="ex-lang">English</span><span class="ex-text">My mom is 80 and can't leave the house. She lives in 49009.</span></button></li>
+          </ul>
+          <p class="trust">Every time and phone number in an answer is checked against the published schedules before you see it. Schedules change, so call before you go.</p>
+        </div>
+        <div id="chat-log" aria-live="polite"></div>
+      </div>
+      <div class="composer">
+        <form id="chat-form">
+          <label for="chat-input" class="visually-hidden">Your question</label>
+          <input id="chat-input" type="text" maxlength="500" autocomplete="off" placeholder="Ask what's open near you">
+          <button class="btn" id="chat-send" type="submit">Ask</button>
+        </form>
+        <div class="composer-foot">
+          <label class="clock">Time <input id="chat-now" type="datetime-local" aria-label="Ask as if it were this date and time"></label>
+          <span id="pin-note">No pin set</span>
+          <button type="button" class="link-btn" id="chat-reset" hidden>New question</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-body" id="tab-browse" role="tabpanel" aria-labelledby="tab-btn-browse">
+      <div class="browse-controls">
+        <div class="segmented" role="group" aria-label="Filter by type of help">
+          <button data-filter="all" class="active">All</button>
+          <button data-filter="emergency_pantry">Groceries</button>
+          <button data-filter="soup_kitchen">Meals</button>
+          <button data-filter="senior_program">Seniors</button>
+          <button data-filter="mobile_program">Mobile</button>
+        </div>
+        <div class="field">
+          <label for="address" class="visually-hidden">Your address</label>
+          <input id="address" type="text" placeholder="Your address or ZIP">
+          <button class="btn" id="find-nearest">Sort by distance</button>
+        </div>
+        <div class="field">
+          <label for="search" class="visually-hidden">Search by name</label>
+          <input id="search" type="search" placeholder="Search by name, like Loaves or Gospel">
+        </div>
+        <div class="start-line">
+          <span id="start-note">Distances from downtown Kalamazoo.</span>
+          <button type="button" class="link-btn" id="locate">Use my location</button>
+          <button type="button" class="link-btn" id="reset-start" hidden>Clear pin</button>
+        </div>
+      </div>
+      <div class="list-scroll">
+        <div id="route-panel" aria-live="polite">
+          <p id="route-text"></p>
+          <div class="modes">
+            <button type="button" class="link-btn" id="route-driving">Driving</button>
+            <button type="button" class="link-btn" id="route-walking">Walking</button>
+          </div>
+        </div>
+        <div class="list-head" id="list-heading">Nearest first</div>
+        <div id="list"></div>
+        <footer class="site-foot">
+          <p><strong>Call before you go.</strong> Hours come from the South Michigan Food Bank Kalamazoo County Resource Guide, Kalamazoo Loaves &amp; Fishes, and local directories, checked October 30, 2026. Some sites only run on certain weeks of the month, and sources sometimes disagree.</p>
+          <p>Not sure where to start? Kalamazoo Loaves &amp; Fishes: <a href="tel:2693433663">269-343-3663</a>.</p>
+          <p>FreshTrack is open source. <a href="https://github.com/kcasko/freshtrack">How it works</a></p>
+        </footer>
+      </div>
+    </div>
+  </section>
+
+  <div class="map-wrap">
+    <div id="map" aria-label="Map of food pantries and free meals in Kalamazoo County"></div>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:#1f5135"></i>Groceries</span>
+      <span><i style="background:#d9931c"></i>Free meals</span>
+      <span><i class="ring"></i>In the answer</span>
+    </div>
+  </div>
+</div>
 
 <script>
 const config = window.KZOO_FOOD_MAP_CONFIG || {};
-const SERVICE_LABEL = { emergency_pantry: "Emergency pantry", soup_kitchen: "Soup kitchen", senior_program: "Senior help", mobile_program: "Mobile distribution" };
+const SERVICE_LABEL = { emergency_pantry: "Groceries", soup_kitchen: "Free meals", senior_program: "Seniors 60+", mobile_program: "Mobile pantry" };
+const DOWNTOWN = [-85.5872, 42.2917];
 let allPlaces = [];
 let currentFilter = "all";
 let searchText = "";
-let startPoint = [-85.5872, 42.2917];
+let startPoint = DOWNTOWN;
+let startLabel = "downtown Kalamazoo";
 let startMarker = null;
-let routeDestination = null;
-let routeMode = "driving";
-let map = null;
 let startIsPinned = false;
+let routeDestination = null;
+let routeName = "";
+let routeMode = "driving";
 let chatHistory = [];
+let map = null;
 
+const $ = (id) => document.getElementById(id);
+function esc(text) {
+  return String(text ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function telLink(phone) {
+  return phone ? `<a href="tel:${phone.replace(/\D/g, "")}">${esc(phone)}</a>` : "";
+}
 function haversineMiles(a, b) {
   const R = 3958.8;
   const dLat = (b[1] - a[1]) * Math.PI / 180;
@@ -153,72 +320,87 @@ function filteredPlaces() {
   }).map((f) => ({ ...f, properties: { ...f.properties, distance: haversineMiles(startPoint, f.geometry.coordinates) } }))
     .sort((a, b) => a.properties.distance - b.properties.distance);
 }
-function tagsHtml(p) {
-  return serviceTypes({ properties: p }).map((t) => `<span class="tag ${t === "soup_kitchen" ? "soup" : ""}">${SERVICE_LABEL[t] || t}</span>`).join("");
+function kindHtml(types) {
+  const meal = types.includes("soup_kitchen");
+  return `<div class="kind ${meal ? "meal" : ""}">${types.map((t) => SERVICE_LABEL[t] || t).join(" · ")}</div>`;
 }
-function popupHtml(props) {
-  const source = props.source ? `<p><a href="${props.source}" target="_blank" rel="noopener">Source</a></p>` : "";
-  const phone = props.phone ? `<p>Phone: ${props.phone}</p>` : "";
-  return `<h3>${props.name}</h3><p>${tagsHtml(props)}<br>${props.address || ""}</p><p>${props.note || ""}</p><p>${props.hours_note || ""}</p>${phone}${source}`;
-}
-function cardHtml(f, showRouteButton) {
-  const p = f.properties;
-  return `<article class="place" data-lng="${f.geometry.coordinates[0]}" data-lat="${f.geometry.coordinates[1]}" data-name="${p.name.replace(/"/g, "")}">
-    ${tagsHtml(p)}
-    <h3>${p.name} &middot; ${p.distance.toFixed(1)} mi straight-line</h3>
-    <p>${p.address || ""}</p><p>${p.note || ""}</p><p>${p.hours_note || ""}</p>
-    ${p.phone ? `<p>Phone: ${p.phone}</p>` : ""}
-    ${p.source ? `<p><a href="${p.source}" target="_blank" rel="noopener">Source</a></p>` : ""}
-    ${showRouteButton ? `<button class="route-btn">Calculate route</button>` : ""}
-  </article>`;
-}
-function attachCardEvents(container) {
-  container.querySelectorAll(".place").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      if (e.target.classList.contains("route-btn")) return;
-      map.flyTo({ center: [Number(el.dataset.lng), Number(el.dataset.lat)], zoom: 14 });
-    });
-    const btn = el.querySelector(".route-btn");
-    if (btn) btn.addEventListener("click", () => calculateRoute([Number(el.dataset.lng), Number(el.dataset.lat)], el.dataset.name));
+
+// Tabs
+function showTab(name) {
+  ["ask", "browse"].forEach((t) => {
+    $(`tab-btn-${t}`).setAttribute("aria-selected", String(t === name));
+    $(`tab-${t}`).classList.toggle("active", t === name);
   });
+  if (map) setTimeout(() => map.resize(), 0);
+}
+
+// Browse list
+function popupHtml(props) {
+  return `<h3>${esc(props.name)}</h3><p>${esc(props.address)}</p><p>${esc(props.hours_note)}</p>${props.phone ? `<p>${telLink(props.phone)}</p>` : ""}`;
+}
+function cardHtml(f) {
+  const p = f.properties;
+  return `<article class="place" data-lng="${f.geometry.coordinates[0]}" data-lat="${f.geometry.coordinates[1]}" data-name="${esc(p.name)}">
+    <span class="dist">${p.distance.toFixed(1)} mi</span>
+    ${kindHtml(serviceTypes(f))}
+    <h3>${esc(p.name)}</h3>
+    <div class="addr">${esc(p.address)}</div>
+    <details><summary>Hours and notes</summary><p>${esc(p.hours_note)}</p><p>${esc(p.note)}</p>${p.source ? `<p><a href="${esc(p.source)}" target="_blank" rel="noopener">Source</a></p>` : ""}</details>
+    <div class="actions">${p.phone ? telLink(p.phone) : ""}<button type="button" class="route-btn">Route</button></div>
+  </article>`;
 }
 function renderList() {
   const places = filteredPlaces();
-  document.getElementById("list-heading").textContent = `Places, nearest first (${places.length})`;
-  document.getElementById("start-note").textContent = `Starting point: ${startPoint[1].toFixed(4)}, ${startPoint[0].toFixed(4)}. Click the map, use your location, or type an address. Distances in the list are straight-line miles until a route is calculated.`;
-  const nearestEl = document.getElementById("nearest");
-  const top3 = places.slice(0, 3);
-  nearestEl.innerHTML = `<h3 style="margin:0 0 8px;">Nearest 3</h3>` + (top3.map((f) => cardHtml(f, true)).join("") || "<p>No places match that filter yet.</p>");
-  document.getElementById("list").innerHTML = places.slice(3).map((f) => cardHtml(f, true)).join("");
-  attachCardEvents(nearestEl);
-  attachCardEvents(document.getElementById("list"));
+  $("place-count").textContent = `(${places.length})`;
+  $("list-heading").textContent = `${places.length} ${places.length === 1 ? "place" : "places"}, nearest first`;
+  $("start-note").textContent = `Distances from ${startLabel}, straight line.`;
+  $("reset-start").hidden = !startIsPinned;
+  $("list").innerHTML = places.map(cardHtml).join("") || `<p class="list-head">Nothing matches that filter.</p>`;
+  $("list").querySelectorAll(".place").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (e.target.closest("a, button, summary")) return;
+      map.flyTo({ center: [Number(el.dataset.lng), Number(el.dataset.lat)], zoom: 15 });
+    });
+    el.querySelector(".route-btn").addEventListener("click", () => calculateRoute([Number(el.dataset.lng), Number(el.dataset.lat)], el.dataset.name));
+  });
 }
 function updateMapSource() {
-  if (!map.getSource("places")) return;
-  map.getSource("places").setData({ type: "FeatureCollection", features: filteredPlaces() });
+  if (map && map.getSource("places")) map.getSource("places").setData({ type: "FeatureCollection", features: filteredPlaces() });
 }
-function setStart(point, fly) {
+function setStart(point, fly, label) {
   startPoint = point;
   startIsPinned = true;
+  startLabel = label || "your pin";
   if (startMarker) startMarker.remove();
-  startMarker = new maplibregl.Marker({ color: "#dc2626" }).setLngLat(startPoint).addTo(map);
-  if (fly) map.flyTo({ center: startPoint, zoom: 12 });
+  startMarker = new maplibregl.Marker({ color: "#9b2c1f" }).setLngLat(startPoint).addTo(map);
+  if (fly) map.flyTo({ center: startPoint, zoom: 13 });
+  $("pin-note").textContent = "Using your pin as location";
   renderList();
 }
+function clearStart() {
+  if (startMarker) { startMarker.remove(); startMarker = null; }
+  startIsPinned = false;
+  startPoint = DOWNTOWN;
+  startLabel = "downtown Kalamazoo";
+  $("pin-note").textContent = "No pin set";
+  renderList();
+}
+
+// Routes
 function drawLine(coords) {
-  if (map.getSource("route")) map.getSource("route").setData({ type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} });
+  const data = { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} };
+  if (map.getSource("route")) map.getSource("route").setData(data);
   else {
-    map.addSource("route", { type: "geojson", data: { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} } });
-    map.addLayer({ id: "route-line", type: "line", source: "route", paint: { "line-color": "#166534", "line-width": 4 } });
+    map.addSource("route", { type: "geojson", data });
+    map.addLayer({ id: "route-line", type: "line", source: "route", paint: { "line-color": "#1f5135", "line-width": 4, "line-dasharray": [2, 1.5] } });
   }
 }
 async function calculateRoute(destination, name) {
   routeDestination = destination;
-  const panel = document.getElementById("route-panel");
-  panel.classList.add("visible");
-  const text = document.getElementById("route-text");
-  text.textContent = `To ${name}. Calculating ${routeMode} route...`;
-  // Amazon Location Routes, when configured.
+  routeName = name;
+  $("route-panel").classList.add("visible");
+  const text = $("route-text");
+  text.textContent = `Finding a ${routeMode} route to ${name}...`;
   if (config.apiKey && config.routeCalculatorName) {
     try {
       const url = `https://routes.geo.${config.region}.amazonaws.com/routes/v0/calculators/${config.routeCalculatorName}/calculate/route?key=${config.apiKey}`;
@@ -226,94 +408,107 @@ async function calculateRoute(destination, name) {
       if (!res.ok) throw new Error("Route request failed");
       const data = await res.json();
       const leg = data.Legs && data.Legs[0];
-      const summary = leg && leg.Summary;
-      if (summary) {
-        const miles = (summary.Distance / 1609.34).toFixed(1);
-        const mins = Math.round(summary.DurationSeconds / 60);
-        text.textContent = `To ${name} by ${routeMode}: ${miles} miles, about ${mins} minutes (Amazon Location Service).`;
+      if (leg && leg.Summary) {
+        text.textContent = `${name}: ${(leg.Summary.Distance / 1609.34).toFixed(1)} miles, about ${Math.round(leg.Summary.DurationSeconds / 60)} minutes ${routeMode}.`;
       }
-      const line = leg && leg.Geometry && leg.Geometry.LineString;
-      if (line) drawLine(line);
-      else drawLine([startPoint, destination]);
+      drawLine(leg && leg.Geometry && leg.Geometry.LineString ? leg.Geometry.LineString : [startPoint, destination]);
       return;
     } catch (err) {
       console.error(err);
     }
   }
-  // Local fallback: straight line, clearly labelled, no invented drive time.
-  const miles = haversineMiles(startPoint, destination).toFixed(1);
-  text.textContent = `To ${name} by ${routeMode}: ${miles} miles straight-line. Driving and walking times need an Amazon Location route calculator key in config.js. This line is a straight line, not a road route.`;
+  // Without a route calculator, show the straight-line distance and never guess a travel time.
+  text.textContent = `${name} is ${haversineMiles(startPoint, destination).toFixed(1)} miles from ${startLabel} in a straight line. Ask FreshTrack for walking or driving time.`;
   drawLine([startPoint, destination]);
-  map.fitBounds([startPoint, destination], { padding: 60 });
+  map.fitBounds([startPoint, destination], { padding: 80 });
 }
 async function findByAddress() {
-  const text = document.getElementById("address").value.trim();
-  if (!text) return alert("Type an address first, for example 1200 Portage St, Kalamazoo.");
-  // Lambda endpoint, when deployed, returns { longitude, latitude, nearest: [...] }.
+  const text = $("address").value.trim();
+  if (!text) { $("address").focus(); return; }
   if (config.lambdaEndpoint) {
     try {
       const res = await fetch(config.lambdaEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: text }) });
       const data = await res.json();
-      if (data.longitude && data.latitude) { setStart([data.longitude, data.latitude], true); return; }
+      if (data.longitude && data.latitude) { setStart([data.longitude, data.latitude], true, text); return; }
     } catch (err) { console.error(err); }
   }
-  // Amazon Location Place Index search, when a key is set.
   if (config.apiKey && config.placeIndexName) {
     try {
       const url = `https://places.geo.${config.region}.amazonaws.com/places/v0/indexes/${config.placeIndexName}/search/text?key=${config.apiKey}`;
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Text: text, BiasPosition: startPoint, MaxResults: 1 }) });
       const data = await res.json();
       const result = data.Results && data.Results[0];
-      if (result && result.Place && result.Place.Geometry && result.Place.Geometry.Point) {
-        setStart(result.Place.Geometry.Point, true); return;
-      }
+      if (result && result.Place && result.Place.Geometry && result.Place.Geometry.Point) { setStart(result.Place.Geometry.Point, true, text); return; }
     } catch (err) { console.error(err); }
   }
-  alert("Address search needs an Amazon Location Place Index key or a Lambda endpoint in config.js. For now, click the map to set your starting point, or use your location.");
+  // No geocoder on the static site: hand the question to the agent, which can look up any address.
+  showTab("ask");
+  sendChat(`What food help is near ${text}?`);
 }
-// Chat with the FreshTrack agent (lambda/chat.py behind a Lambda Function URL).
-function addMessage(kind, text, meta) {
+
+// Ask FreshTrack (lambda/chat.py behind a Lambda Function URL)
+function addTurn(kind, text) {
+  $("chat-intro").hidden = true;
+  $("chat-reset").hidden = false;
   const el = document.createElement("div");
-  el.className = `msg ${kind}`;
-  el.dir = "auto"; // right-to-left for Arabic replies
-  el.textContent = text;
-  if (meta) {
-    const small = document.createElement("span");
-    small.className = "meta";
-    small.textContent = meta;
-    el.appendChild(small);
-  }
-  const log = document.getElementById("chat-log");
-  log.appendChild(el);
-  log.scrollTop = log.scrollHeight;
+  el.className = `turn ${kind}`;
+  const body = document.createElement("div");
+  body.className = "text";
+  body.dir = "auto";
+  body.textContent = text;
+  el.appendChild(body);
+  $("chat-log").appendChild(el);
+  $("chat-scroll").scrollTop = $("chat-scroll").scrollHeight;
   return el;
+}
+function addMeta(el, data) {
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const check = document.createElement("span");
+  check.className = "ok";
+  check.textContent = data.guard && data.guard.rewritten ? "Corrected and checked against schedules" : "Checked against schedules";
+  meta.appendChild(check);
+  const when = document.createElement("span");
+  when.textContent = `as of ${data.now}`;
+  meta.appendChild(when);
+  el.appendChild(meta);
+  if (data.places && data.places.length) {
+    const links = document.createElement("div");
+    links.className = "place-links";
+    data.places.forEach((p) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = p.name;
+      b.addEventListener("click", () => map.flyTo({ center: p.position, zoom: 15 }));
+      links.appendChild(b);
+    });
+    el.appendChild(links);
+  }
 }
 function highlightPlaces(places) {
   const data = { type: "FeatureCollection", features: places.map((p) => ({ type: "Feature", geometry: { type: "Point", coordinates: p.position }, properties: { name: p.name } })) };
   if (map.getSource("highlight")) map.getSource("highlight").setData(data);
   else {
     map.addSource("highlight", { type: "geojson", data });
-    map.addLayer({ id: "highlight-ring", type: "circle", source: "highlight", paint: { "circle-radius": 16, "circle-color": "rgba(22,101,52,0.15)", "circle-stroke-color": "#166534", "circle-stroke-width": 3 } });
-    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", layout: { "text-field": ["get", "name"], "text-size": 12, "text-offset": [0, 1.8], "text-anchor": "top", "text-max-width": 12 }, paint: { "text-color": "#14532d", "text-halo-color": "#fff", "text-halo-width": 2 } });
+    map.addLayer({ id: "highlight-ring", type: "circle", source: "highlight", paint: { "circle-radius": 15, "circle-color": "rgba(217,147,28,0.18)", "circle-stroke-color": "#d9931c", "circle-stroke-width": 3 } });
+    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", layout: { "text-field": ["get", "name"], "text-font": ["Montserrat SemiBold", "Open Sans Bold", "Noto Sans Regular"], "text-size": 12, "text-offset": [0, 1.7], "text-anchor": "top", "text-max-width": 12 }, paint: { "text-color": "#1a1f1c", "text-halo-color": "#fffefb", "text-halo-width": 2 } });
   }
   if (!places.length) return;
   const points = places.map((p) => p.position).concat(startIsPinned ? [startPoint] : []);
   if (points.length === 1) map.flyTo({ center: points[0], zoom: 14 });
   else {
     const lons = points.map((p) => p[0]), lats = points.map((p) => p[1]);
-    map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 70, maxZoom: 15 });
+    map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 80, maxZoom: 15 });
   }
 }
 async function sendChat(text) {
   const message = text.trim();
   if (!message) return;
-  const input = document.getElementById("chat-input");
-  const send = document.getElementById("chat-send");
-  input.value = "";
-  send.disabled = true;
-  addMessage("user", message);
-  const pending = addMessage("bot pending", "Checking what's open...");
-  const nowValue = document.getElementById("chat-now").value;
+  $("chat-input").value = "";
+  $("chat-send").disabled = true;
+  addTurn("user", message);
+  const pending = addTurn("bot pending", "Checking what's open");
+  const nowValue = $("chat-now").value;
   const body = { message, history: chatHistory.slice(-8) };
   if (startIsPinned) body.pin = startPoint;
   if (nowValue) body.now = nowValue.replace("T", " ");
@@ -323,57 +518,70 @@ async function sendChat(text) {
     const data = await res.json().catch(() => ({}));
     pending.remove();
     if (!res.ok || !data.reply) {
-      addMessage("error", data.error || "FreshTrack could not answer just now. Call Kalamazoo Loaves & Fishes at 269-343-3663 or dial 2-1-1.");
+      addTurn("error", data.error || "FreshTrack couldn't answer just now. Call Kalamazoo Loaves & Fishes at 269-343-3663, or dial 2-1-1.");
       return;
     }
-    const checked = data.guard && data.guard.rewritten ? "Rewritten by the fact-checker after the hours guard caught a problem" : "Checked by the hours guard";
-    addMessage("bot", data.reply, `${checked} · as of ${data.now}`);
+    addMeta(addTurn("bot", data.reply), data);
     chatHistory.push({ role: "user", text: message }, { role: "assistant", text: data.reply });
-    if (data.places && map && map.isStyleLoaded()) highlightPlaces(data.places);
+    if (data.places && map) {
+      // isStyleLoaded() is false while tiles load, so wait for the map to settle if needed.
+      if (map.isStyleLoaded()) highlightPlaces(data.places);
+      else map.once("idle", () => highlightPlaces(data.places));
+    }
   } catch (err) {
     console.error(err);
     pending.remove();
-    addMessage("error", "Could not reach FreshTrack. For food help now, call Kalamazoo Loaves & Fishes at 269-343-3663 or dial 2-1-1.");
+    addTurn("error", "Couldn't reach FreshTrack. For food help now, call Kalamazoo Loaves & Fishes at 269-343-3663, or dial 2-1-1.");
   } finally {
-    send.disabled = false;
-    input.focus();
+    $("chat-send").disabled = false;
+    $("chat-scroll").scrollTop = $("chat-scroll").scrollHeight;
   }
+}
+function resetChat() {
+  chatHistory = [];
+  $("chat-log").innerHTML = "";
+  $("chat-intro").hidden = false;
+  $("chat-reset").hidden = true;
+  if (map && map.getSource("highlight")) map.getSource("highlight").setData({ type: "FeatureCollection", features: [] });
+  $("chat-input").focus();
 }
 
 async function init() {
-  document.getElementById("chat-form").addEventListener("submit", (e) => { e.preventDefault(); sendChat(document.getElementById("chat-input").value); });
-  document.querySelectorAll("#chat-examples button").forEach((btn) => btn.addEventListener("click", () => sendChat(btn.textContent)));
+  $("tab-btn-ask").addEventListener("click", () => showTab("ask"));
+  $("tab-btn-browse").addEventListener("click", () => showTab("browse"));
+  $("chat-form").addEventListener("submit", (e) => { e.preventDefault(); sendChat($("chat-input").value); });
+  document.querySelectorAll("#chat-examples button").forEach((btn) => btn.addEventListener("click", () => sendChat(btn.querySelector(".ex-text").textContent)));
+  $("chat-reset").addEventListener("click", resetChat);
+
   const res = await fetch("data/places.geojson");
   const geojson = await res.json();
   allPlaces = geojson.features || [];
-  const useAmazon = Boolean(config.apiKey);
-  const style = useAmazon && config.amazonStyleUrl ? config.amazonStyleUrl() : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-  if (useAmazon) document.getElementById("basemap-notice").textContent = "Amazon Location Service basemap is active.";
-  map = new maplibregl.Map({ container: "map", style, center: [-85.58, 42.28], zoom: 11.5 });
-  map.addControl(new maplibregl.NavigationControl(), "top-right");
+  const style = config.apiKey && config.amazonStyleUrl ? config.amazonStyleUrl() : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+  map = new maplibregl.Map({ container: "map", style, center: [-85.6, 42.27], zoom: 11.3, attributionControl: { compact: true } });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.on("load", () => {
-    map.addSource("places", { type: "geojson", data: { type: "FeatureCollection", features: filteredPlaces() }, cluster: true, clusterMaxZoom: 13, clusterRadius: 45 });
-    map.addLayer({ id: "clusters", type: "circle", source: "places", filter: ["has", "point_count"], paint: { "circle-color": "#166534", "circle-radius": ["step", ["get", "point_count"], 18, 10, 26, 25, 34], "circle-opacity": 0.9 } });
-    map.addLayer({ id: "cluster-count", type: "symbol", source: "places", filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count"], "text-size": 13 }, paint: { "text-color": "#fff" } });
-    map.addLayer({ id: "points", type: "circle", source: "places", filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["match", ["get", "category"], "soup_kitchen", "#b45309", "pantry", "#1d4ed8", "#334155"], "circle-radius": 9, "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+    map.addSource("places", { type: "geojson", data: { type: "FeatureCollection", features: filteredPlaces() }, cluster: true, clusterMaxZoom: 13, clusterRadius: 40 });
+    map.addLayer({ id: "clusters", type: "circle", source: "places", filter: ["has", "point_count"], paint: { "circle-color": "#1f5135", "circle-radius": ["step", ["get", "point_count"], 15, 5, 19, 10, 24], "circle-stroke-color": "#fffefb", "circle-stroke-width": 2 } });
+    map.addLayer({ id: "cluster-count", type: "symbol", source: "places", filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count"], "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"], "text-size": 13 }, paint: { "text-color": "#fff" } });
+    map.addLayer({ id: "points", type: "circle", source: "places", filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["match", ["get", "category"], "soup_kitchen", "#d9931c", "#1f5135"], "circle-radius": 8, "circle-stroke-color": "#fffefb", "circle-stroke-width": 2 } });
     map.on("click", "clusters", (e) => {
       const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
-      const clusterId = features[0].properties.cluster_id;
-      map.getSource("places").getClusterExpansionZoom(clusterId, (err, zoom) => { if (!err) map.easeTo({ center: features[0].geometry.coordinates, zoom }); });
+      map.getSource("places").getClusterExpansionZoom(features[0].properties.cluster_id, (err, zoom) => { if (!err) map.easeTo({ center: features[0].geometry.coordinates, zoom }); });
     });
     map.on("click", "points", (e) => {
-      const props = e.features[0].properties;
-      // service_types arrives as a string from the GeoJSON source, so the popup uses category here.
-      new maplibregl.Popup().setLngLat(e.lngLat).setHTML(popupHtml({ ...props, service_types: props.category === "soup_kitchen" ? ["soup_kitchen"] : ["emergency_pantry"] })).addTo(map);
+      new maplibregl.Popup({ offset: 10 }).setLngLat(e.lngLat).setHTML(popupHtml(e.features[0].properties)).addTo(map);
     });
-    map.on("mouseenter", "points", () => { map.getCanvas().style.cursor = "pointer"; });
-    map.on("mouseleave", "points", () => { map.getCanvas().style.cursor = ""; });
+    ["clusters", "points"].forEach((layer) => {
+      map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
+    });
     map.on("click", (e) => {
-      if (e.originalEvent.target.closest(".maplibregl-popup")) return;
+      if (map.queryRenderedFeatures(e.point, { layers: ["clusters", "points"] }).length) return;
       setStart([e.lngLat.lng, e.lngLat.lat], false);
     });
     renderList();
   });
+
   document.querySelectorAll("[data-filter]").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("[data-filter]").forEach((b) => b.classList.remove("active"));
@@ -382,19 +590,19 @@ async function init() {
       updateMapSource(); renderList();
     });
   });
-  document.getElementById("search").addEventListener("input", (e) => { searchText = e.target.value.trim().toLowerCase(); updateMapSource(); renderList(); });
-  document.getElementById("find-nearest").addEventListener("click", findByAddress);
-  document.getElementById("address").addEventListener("keydown", (e) => { if (e.key === "Enter") findByAddress(); });
-  document.getElementById("locate").addEventListener("click", () => {
-    if (!navigator.geolocation) return alert("Geolocation is not available in this browser.");
-    navigator.geolocation.getCurrentPosition((pos) => setStart([pos.coords.longitude, pos.coords.latitude], true), () => alert("Location permission was denied. Click the map to set a starting point instead."));
+  $("search").addEventListener("input", (e) => { searchText = e.target.value.trim().toLowerCase(); updateMapSource(); renderList(); });
+  $("find-nearest").addEventListener("click", findByAddress);
+  $("address").addEventListener("keydown", (e) => { if (e.key === "Enter") findByAddress(); });
+  $("locate").addEventListener("click", () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => setStart([pos.coords.longitude, pos.coords.latitude], true, "your location"), () => { $("start-note").textContent = "Location permission was denied. Tap the map to set a pin instead."; });
   });
-  document.getElementById("reset-start").addEventListener("click", () => { if (startMarker) { startMarker.remove(); startMarker = null; } startIsPinned = false; startPoint = [-85.5872, 42.2917]; map.flyTo({ center: [-85.58, 42.28], zoom: 11.5 }); renderList(); });
-  document.getElementById("route-driving").addEventListener("click", () => { routeMode = "driving"; if (routeDestination) calculateRoute(routeDestination, "that place"); });
-  document.getElementById("route-walking").addEventListener("click", () => { routeMode = "walking"; if (routeDestination) calculateRoute(routeDestination, "that place"); });
+  $("reset-start").addEventListener("click", clearStart);
+  $("route-driving").addEventListener("click", () => { routeMode = "driving"; if (routeDestination) calculateRoute(routeDestination, routeName); });
+  $("route-walking").addEventListener("click", () => { routeMode = "walking"; if (routeDestination) calculateRoute(routeDestination, routeName); });
 }
 init().catch((err) => {
-  document.getElementById("list").innerHTML = "<p>Could not load the places data. If you opened this file directly, serve the folder with a local web server instead, for example: python3 -m http.server 8000</p>";
+  $("list").innerHTML = `<p class="list-head">The places list didn't load. Call Kalamazoo Loaves &amp; Fishes at 269-343-3663, or dial 2-1-1.</p>`;
   console.error(err);
 });
 </script>
