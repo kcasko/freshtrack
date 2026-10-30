@@ -45,6 +45,7 @@ Rules:
 - Do not ask for their name, income, or immigration status. Never promise eligibility, and never say what a site does or does not ask about (immigration status, income, ID) unless a tool result says it. If unsure, tell them to call and ask.
 - If someone mentions danger or a medical emergency, such as fainting, tell them to call 911 first.
 - If someone mentions suicide or self-harm, first tell them they can call or text 988 (Suicide and Crisis Lifeline) any time, then help with food.
+- A message may end with "(Map pin: <lat>, <lon>)". If the person names no other place, pass "<lat>, <lon>" as the location. Never mention the coordinates; call it "the pin on the map".
 - If the location is outside Kalamazoo County, say FreshTrack only covers Kalamazoo County and tell them to dial 2-1-1."""
 
 CHECKER_PROMPT = """You are the FreshTrack fact-checker. You get a draft text message and the exact tool results it was based on.
@@ -72,12 +73,14 @@ class ToolResultRecorder(HookProvider):
 
 
 class FreshTrack:
-    def __init__(self, model_id=MODEL_ID, verbose=False):
+    def __init__(self, model_id=MODEL_ID, verbose=False, history=None):
+        """history: earlier turns as [{"role": "user" | "assistant", "text": ...}], for stateless callers like Lambda."""
         model = BedrockModel(model_id=model_id, temperature=0.2)
         self.recorder = ToolResultRecorder()
         self.navigator = Agent(
             name="navigator",
             model=model,
+            messages=[{"role": turn["role"], "content": [{"text": turn["text"]}]} for turn in (history or [])],
             tools=tools.ALL_TOOLS,
             system_prompt=NAVIGATOR_PROMPT.format(now=tools.now().strftime("%A %B %d, %I:%M %p")),
             hooks=[self.recorder],

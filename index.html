@@ -29,6 +29,23 @@
   #route-panel { background: #fff; border: 1px solid #86efac; border-radius: 10px; padding: 12px; margin-bottom: 12px; display: none; }
   #route-panel.visible { display: block; }
   footer { max-width: 1100px; margin: 0 auto; padding: 0 20px 30px; font-size: 14px; color: #475569; }
+  #chat { max-width: 1100px; margin: 0 auto 14px; border: 1px solid #bbf7d0; border-radius: 12px; background: #f0fdf4; padding: 14px 16px; }
+  #chat h2 { margin: 0 0 4px; font-size: 20px; }
+  #chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; margin: 10px 0; }
+  .msg { max-width: 85%; padding: 9px 12px; border-radius: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.user { align-self: flex-end; background: #166534; color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; background: #fff; border: 1px solid #d1fae5; border-bottom-left-radius: 4px; }
+  .msg.bot.pending { color: #475569; font-style: italic; }
+  .msg.error { align-self: flex-start; background: #fef2f2; border: 1px solid #fecaca; }
+  .msg .meta { display: block; margin-top: 6px; font-size: 12px; color: #64748b; font-style: normal; }
+  .chat-row { display: flex; gap: 8px; }
+  .chat-row input { flex: 1; font-size: 16px; padding: 10px 12px; border-radius: 10px; border: 1px solid #cbd5e1; min-width: 0; }
+  .chat-row button, .chips button { font-size: 15px; padding: 9px 14px; border-radius: 999px; border: 1px solid #166534; background: #166534; color: #fff; cursor: pointer; }
+  .chat-row button:disabled { opacity: .6; cursor: wait; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chips button { background: #fff; color: #166534; font-size: 13px; padding: 6px 10px; }
+  #chat details { margin-top: 8px; font-size: 14px; color: #475569; }
+  #chat details input { font-size: 14px; padding: 4px 6px; }
   @media (max-width: 800px) {
     main { grid-template-columns: 1fr; }
     #map { height: 480px; }
@@ -43,6 +60,28 @@
   <p class="notice" id="basemap-notice">Demo basemap is showing. Add your Amazon Location Service API key in <code>config.js</code> to switch to the Amazon Location basemap, Place Index search, and driving or walking routes. See README for the exact setup.</p>
   <p><strong>Call before you go.</strong> Pantry and meal schedules change, and some sites only run on certain days of the month. If a card says hours differ between sources, trust the phone call, not the map.</p>
 </header>
+
+<section id="chat" aria-label="Ask FreshTrack">
+  <h2>Ask FreshTrack</h2>
+  <p>Ask in any language what's open near you. Add a ZIP code or street, or click the map to drop a pin first. Every time and phone number in a reply is checked against the dataset before you see it.</p>
+  <div id="chat-log" aria-live="polite"></div>
+  <form class="chat-row" id="chat-form">
+    <label for="chat-input" style="position:absolute;left:-9999px;">Your message</label>
+    <input id="chat-input" type="text" maxlength="500" autocomplete="off" placeholder="I'm in 49007 and need groceries tonight. No car.">
+    <button id="chat-send" type="submit">Send</button>
+  </form>
+  <div class="chips" id="chat-examples">
+    <button type="button">I'm in 49007 and need groceries tonight. No car.</button>
+    <button type="button">Hola, necesito comida para mis hijos hoy. Estoy en el 49001.</button>
+    <button type="button">أحتاج طعامًا الليلة. الرمز البريدي 49007</button>
+    <button type="button">My mom is 80 and can't leave the house. She lives in 49009.</button>
+  </div>
+  <details>
+    <summary>Demo clock</summary>
+    <p>Pantry hours depend on the day and time. To try a specific moment, set it here. Leave it empty to use the real time in Kalamazoo.
+      <input id="chat-now" type="datetime-local" aria-label="Pretend it is this date and time"></p>
+  </details>
+</section>
 
 <div class="controls">
   <button data-filter="all" class="active">All food help</button>
@@ -91,6 +130,8 @@ let startMarker = null;
 let routeDestination = null;
 let routeMode = "driving";
 let map = null;
+let startIsPinned = false;
+let chatHistory = [];
 
 function haversineMiles(a, b) {
   const R = 3958.8;
@@ -158,6 +199,7 @@ function updateMapSource() {
 }
 function setStart(point, fly) {
   startPoint = point;
+  startIsPinned = true;
   if (startMarker) startMarker.remove();
   startMarker = new maplibregl.Marker({ color: "#dc2626" }).setLngLat(startPoint).addTo(map);
   if (fly) map.flyTo({ center: startPoint, zoom: 12 });
@@ -229,7 +271,78 @@ async function findByAddress() {
   }
   alert("Address search needs an Amazon Location Place Index key or a Lambda endpoint in config.js. For now, click the map to set your starting point, or use your location.");
 }
+// Chat with the FreshTrack agent (lambda/chat.py behind a Lambda Function URL).
+function addMessage(kind, text, meta) {
+  const el = document.createElement("div");
+  el.className = `msg ${kind}`;
+  el.dir = "auto"; // right-to-left for Arabic replies
+  el.textContent = text;
+  if (meta) {
+    const small = document.createElement("span");
+    small.className = "meta";
+    small.textContent = meta;
+    el.appendChild(small);
+  }
+  const log = document.getElementById("chat-log");
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+function highlightPlaces(places) {
+  const data = { type: "FeatureCollection", features: places.map((p) => ({ type: "Feature", geometry: { type: "Point", coordinates: p.position }, properties: { name: p.name } })) };
+  if (map.getSource("highlight")) map.getSource("highlight").setData(data);
+  else {
+    map.addSource("highlight", { type: "geojson", data });
+    map.addLayer({ id: "highlight-ring", type: "circle", source: "highlight", paint: { "circle-radius": 16, "circle-color": "rgba(22,101,52,0.15)", "circle-stroke-color": "#166534", "circle-stroke-width": 3 } });
+    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", layout: { "text-field": ["get", "name"], "text-size": 12, "text-offset": [0, 1.8], "text-anchor": "top", "text-max-width": 12 }, paint: { "text-color": "#14532d", "text-halo-color": "#fff", "text-halo-width": 2 } });
+  }
+  if (!places.length) return;
+  const points = places.map((p) => p.position).concat(startIsPinned ? [startPoint] : []);
+  if (points.length === 1) map.flyTo({ center: points[0], zoom: 14 });
+  else {
+    const lons = points.map((p) => p[0]), lats = points.map((p) => p[1]);
+    map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 70, maxZoom: 15 });
+  }
+}
+async function sendChat(text) {
+  const message = text.trim();
+  if (!message) return;
+  const input = document.getElementById("chat-input");
+  const send = document.getElementById("chat-send");
+  input.value = "";
+  send.disabled = true;
+  addMessage("user", message);
+  const pending = addMessage("bot pending", "Checking what's open...");
+  const nowValue = document.getElementById("chat-now").value;
+  const body = { message, history: chatHistory.slice(-8) };
+  if (startIsPinned) body.pin = startPoint;
+  if (nowValue) body.now = nowValue.replace("T", " ");
+  try {
+    if (!config.chatEndpoint) throw new Error("No chat endpoint is set in config.js.");
+    const res = await fetch(config.chatEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    pending.remove();
+    if (!res.ok || !data.reply) {
+      addMessage("error", data.error || "FreshTrack could not answer just now. Call Kalamazoo Loaves & Fishes at 269-343-3663 or dial 2-1-1.");
+      return;
+    }
+    const checked = data.guard && data.guard.rewritten ? "Rewritten by the fact-checker after the hours guard caught a problem" : "Checked by the hours guard";
+    addMessage("bot", data.reply, `${checked} · as of ${data.now}`);
+    chatHistory.push({ role: "user", text: message }, { role: "assistant", text: data.reply });
+    if (data.places && map && map.isStyleLoaded()) highlightPlaces(data.places);
+  } catch (err) {
+    console.error(err);
+    pending.remove();
+    addMessage("error", "Could not reach FreshTrack. For food help now, call Kalamazoo Loaves & Fishes at 269-343-3663 or dial 2-1-1.");
+  } finally {
+    send.disabled = false;
+    input.focus();
+  }
+}
+
 async function init() {
+  document.getElementById("chat-form").addEventListener("submit", (e) => { e.preventDefault(); sendChat(document.getElementById("chat-input").value); });
+  document.querySelectorAll("#chat-examples button").forEach((btn) => btn.addEventListener("click", () => sendChat(btn.textContent)));
   const res = await fetch("data/places.geojson");
   const geojson = await res.json();
   allPlaces = geojson.features || [];
@@ -276,7 +389,7 @@ async function init() {
     if (!navigator.geolocation) return alert("Geolocation is not available in this browser.");
     navigator.geolocation.getCurrentPosition((pos) => setStart([pos.coords.longitude, pos.coords.latitude], true), () => alert("Location permission was denied. Click the map to set a starting point instead."));
   });
-  document.getElementById("reset-start").addEventListener("click", () => { if (startMarker) { startMarker.remove(); startMarker = null; } startPoint = [-85.5872, 42.2917]; map.flyTo({ center: [-85.58, 42.28], zoom: 11.5 }); renderList(); });
+  document.getElementById("reset-start").addEventListener("click", () => { if (startMarker) { startMarker.remove(); startMarker = null; } startIsPinned = false; startPoint = [-85.5872, 42.2917]; map.flyTo({ center: [-85.58, 42.28], zoom: 11.5 }); renderList(); });
   document.getElementById("route-driving").addEventListener("click", () => { routeMode = "driving"; if (routeDestination) calculateRoute(routeDestination, "that place"); });
   document.getElementById("route-walking").addEventListener("click", () => { routeMode = "walking"; if (routeDestination) calculateRoute(routeDestination, "that place"); });
 }

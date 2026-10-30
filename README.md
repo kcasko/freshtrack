@@ -79,6 +79,30 @@ python eval/run_eval.py --agent --baseline --runs 3    # live agent vs. no-tools
 
 `--now` pins the clock for demos. Leave it off to use the real time in Kalamazoo. Set `FRESHTRACK_MODEL` to use a different Bedrock model, and `FRESHTRACK_OFFLINE=1` to skip AWS (ZIP codes only, straight-line distance).
 
+### Chat on the map
+
+The map page has an **Ask FreshTrack** panel. Replies come from the same agent, and every place a reply names is ringed and labeled on the map. Clicking the map drops a pin, which the agent uses as your location if you don't type one. A demo clock lets you ask "what's open" at any moment. Follow-up questions keep the conversation's context.
+
+Run the map and the agent together locally:
+
+```
+python deploy/local_server.py       # then open http://localhost:8000
+```
+
+Deploy the agent as a public AWS Lambda Function URL (`lambda/chat.py`):
+
+```
+python deploy/deploy.py
+```
+
+The deploy script creates or updates four resources named `freshtrack-chat*`: a DynamoDB usage table, an IAM role scoped to the one Bedrock model, Amazon Location, and that table, the Lambda function, and its Function URL. It prints the URL to put in `config.js` as `chatEndpoint`. Because the URL is public and every call costs Bedrock tokens, it is protected by:
+- a cap of 500 requests per day, counted atomically in DynamoDB (`--daily-limit`)
+- reserved concurrency of 3 (`--concurrency`)
+- browser access only from the GitHub Pages site and localhost (CORS)
+- message, history, and pin size checks
+
+No message text, location, or IP address is stored. The usage table holds a date and a count.
+
 ## The map: what it does
 
 - Filter by service type: emergency pantry, soup kitchen, senior help, mobile distribution

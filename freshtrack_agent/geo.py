@@ -17,6 +17,7 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 KALAMAZOO_CENTER = [-85.5872, 42.2917]
 MAX_MILES_FROM_CENTER = 35
 ZIP_PATTERN = re.compile(r"\b(49\d{3})\b")
+LAT_LON_PATTERN = re.compile(r"\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*")
 
 _clients = {}
 
@@ -42,6 +43,13 @@ def locate(text):
     Kalamazoo, and rejected if it lands far outside the county.
     """
     text = (text or "").strip()
+    pin = LAT_LON_PATTERN.fullmatch(text)
+    if pin:
+        position = [float(pin.group(2)), float(pin.group(1))]
+        if data.haversine_miles(KALAMAZOO_CENTER, position) <= MAX_MILES_FROM_CENTER:
+            return {"position": position, "label": "the pin on the map", "precision": "map_pin"}
+        return None
+
     zip_match = ZIP_PATTERN.search(text)
     zip_info = data.zip_centroids().get(zip_match.group(1)) if zip_match else None
 
