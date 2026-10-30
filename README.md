@@ -8,6 +8,8 @@
 
 Real food help in Kalamazoo County, Michigan: a Strands agent that answers "where can I get food, right now?" in plain language, in the person's own language, plus an explorable map with routing to the nearest sites.
 
+**Try it live: [kcasko.github.io/freshtrack](https://kcasko.github.io/freshtrack/).** Use the Ask FreshTrack panel above the map, in any language. The live demo allows 500 questions a day.
+
 > **you:** I'm in 49007 and need groceries tonight. I don't have a car.
 >
 > **FreshTrack:** Good news! Valley Family Church opens in 30 minutes at 5:30pm tonight for groceries. It's 4 miles away. Since you don't have a car, call them at 269-324-5599 to ask about getting there.
@@ -97,7 +99,7 @@ python deploy/deploy.py
 
 The deploy script creates or updates four resources named `freshtrack-chat*`: a DynamoDB usage table, an IAM role scoped to the one Bedrock model, Amazon Location, and that table, the Lambda function, and its Function URL. It prints the URL to put in `config.js` as `chatEndpoint`. Because the URL is public and every call costs Bedrock tokens, it is protected by:
 - a cap of 500 requests per day, counted atomically in DynamoDB (`--daily-limit`)
-- reserved concurrency of 3 (`--concurrency`)
+- reserved concurrency of 3 (`--concurrency`), when the account's concurrency quota allows it. The demo account's quota was too low to reserve any, so there the daily cap is what limits cost.
 - browser access only from the GitHub Pages site and localhost (CORS)
 - message, history, and pin size checks
 

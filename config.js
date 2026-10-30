@@ -17,7 +17,9 @@ window.KZOO_FOOD_MAP_CONFIG = {
   lambdaEndpoint: "",
   // FreshTrack agent chat (lambda/chat.py). When the page is served by
   // deploy/local_server.py the chat goes to its local /chat route instead.
-  chatEndpoint: ["localhost", "127.0.0.1"].includes(location.hostname) ? "/chat" : "",
+  chatEndpoint: ["localhost", "127.0.0.1"].includes(location.hostname)
+    ? "/chat"
+    : "https://lawtxajsl24jibgv2ljc6cq6ue0lgyqz.lambda-url.us-east-1.on.aws/",
   amazonStyleUrl: function () {
     return "https://maps.geo." + this.region + ".amazonaws.com/maps/v0/maps/" +
       this.mapName + "/style-descriptor?key=" + this.apiKey;
