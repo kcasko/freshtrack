@@ -291,6 +291,7 @@ let routeDestination = null;
 let routeName = "";
 let routeMode = "driving";
 let chatHistory = [];
+let highlighted = new Set();
 let map = null;
 
 const $ = (id) => document.getElementById(id);
@@ -365,7 +366,9 @@ function renderList() {
   });
 }
 function updateMapSource() {
-  if (map && map.getSource("places")) map.getSource("places").setData({ type: "FeatureCollection", features: filteredPlaces() });
+  // Places named in an answer are drawn by the highlight layers, so keep them out of the clusters.
+  const features = filteredPlaces().filter((f) => !highlighted.has(f.properties.name));
+  if (map && map.getSource("places")) map.getSource("places").setData({ type: "FeatureCollection", features });
 }
 function setStart(point, fly, label) {
   startPoint = point;
@@ -486,12 +489,26 @@ function addMeta(el, data) {
   }
 }
 function highlightPlaces(places) {
-  const data = { type: "FeatureCollection", features: places.map((p) => ({ type: "Feature", geometry: { type: "Point", coordinates: p.position }, properties: { name: p.name } })) };
+  highlighted = new Set(places.map((p) => p.name));
+  updateMapSource();
+  const category = (name) => (allPlaces.find((f) => f.properties.name === name) || { properties: {} }).properties.category;
+  const data = { type: "FeatureCollection", features: places.map((p) => ({ type: "Feature", geometry: { type: "Point", coordinates: p.position }, properties: { name: p.name, category: category(p.name) } })) };
   if (map.getSource("highlight")) map.getSource("highlight").setData(data);
   else {
     map.addSource("highlight", { type: "geojson", data });
-    map.addLayer({ id: "highlight-ring", type: "circle", source: "highlight", paint: { "circle-radius": 15, "circle-color": "rgba(217,147,28,0.18)", "circle-stroke-color": "#d9931c", "circle-stroke-width": 3 } });
-    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", layout: { "text-field": ["get", "name"], "text-font": ["Montserrat SemiBold", "Open Sans Bold", "Noto Sans Regular"], "text-size": 12, "text-offset": [0, 1.7], "text-anchor": "top", "text-max-width": 12 }, paint: { "text-color": "#1a1f1c", "text-halo-color": "#fffefb", "text-halo-width": 2 } });
+    // Rings and dots go beneath the clusters so a cluster's count is never covered.
+    map.addLayer({ id: "highlight-ring", type: "circle", source: "highlight", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 9, 14, 15], "circle-color": "rgba(217,147,28,0.2)", "circle-stroke-color": "#d9931c", "circle-stroke-width": 3 } }, "clusters");
+    map.addLayer({ id: "highlight-dot", type: "circle", source: "highlight", paint: { "circle-color": ["match", ["get", "category"], "soup_kitchen", "#d9931c", "#1f5135"], "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 4, 14, 7], "circle-stroke-color": "#fffefb", "circle-stroke-width": 1.5 } }, "clusters");
+    // Labels move to whichever side has room, and stay hidden when zoomed far out, where they would pile up.
+    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", minzoom: 11.5, layout: { "text-field": ["get", "name"], "text-font": ["Montserrat SemiBold", "Open Sans Bold", "Noto Sans Regular"], "text-size": 12, "text-variable-anchor": ["top", "bottom", "left", "right"], "text-radial-offset": 1.5, "text-justify": "auto", "text-max-width": 11 }, paint: { "text-color": "#1a1f1c", "text-halo-color": "#fffefb", "text-halo-width": 2 } });
+    ["highlight-ring", "highlight-dot"].forEach((layer) => {
+      map.on("click", layer, (e) => {
+        const f = allPlaces.find((p) => p.properties.name === e.features[0].properties.name);
+        if (f) new maplibregl.Popup({ offset: 12 }).setLngLat(f.geometry.coordinates).setHTML(popupHtml(f.properties)).addTo(map);
+      });
+      map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
+    });
   }
   if (!places.length) return;
   const points = places.map((p) => p.position).concat(startIsPinned ? [startPoint] : []);
@@ -542,6 +559,8 @@ function resetChat() {
   $("chat-log").innerHTML = "";
   $("chat-intro").hidden = false;
   $("chat-reset").hidden = true;
+  highlighted = new Set();
+  updateMapSource();
   if (map && map.getSource("highlight")) map.getSource("highlight").setData({ type: "FeatureCollection", features: [] });
   $("chat-input").focus();
 }
@@ -557,7 +576,12 @@ async function init() {
   const geojson = await res.json();
   allPlaces = geojson.features || [];
   const style = config.apiKey && config.amazonStyleUrl ? config.amazonStyleUrl() : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-  map = new maplibregl.Map({ container: "map", style, center: [-85.6, 42.27], zoom: 11.3, attributionControl: { compact: true } });
+  // The service covers Kalamazoo County only, so keep the view there: zoomed further out, everything collapses into one cluster.
+  map = new maplibregl.Map({
+    container: "map", style, center: [-85.6, 42.27], zoom: 11.3,
+    minZoom: 9.5, maxZoom: 18, maxBounds: [[-86.25, 41.85], [-84.95, 42.65]],
+    attributionControl: { compact: true },
+  });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.on("load", () => {
     map.addSource("places", { type: "geojson", data: { type: "FeatureCollection", features: filteredPlaces() }, cluster: true, clusterMaxZoom: 13, clusterRadius: 40 });
@@ -576,7 +600,8 @@ async function init() {
       map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
     });
     map.on("click", (e) => {
-      if (map.queryRenderedFeatures(e.point, { layers: ["clusters", "points"] }).length) return;
+      const layers = ["clusters", "points", "highlight-ring"].filter((id) => map.getLayer(id));
+      if (map.queryRenderedFeatures(e.point, { layers }).length) return;
       setStart([e.lngLat.lng, e.lngLat.lat], false);
     });
     renderList();
