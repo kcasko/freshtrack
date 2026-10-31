@@ -161,18 +161,7 @@ The earlier grocery and farmers market version is saved as `data/places-food-acc
 
 ## AWS architecture
 
-```
-Browser (MapLibre GL JS)
-  ├─ Amazon CloudFront ── Amazon S3 (private, Origin Access Control)
-  │     index.html, config.js, data/places.geojson
-  ├─ Amazon Location Service, v2 APIs, with a referer-restricted API key
-  │     Maps: GetTile (Standard style vector basemap)
-  │     Places: Geocode (typed address → point)
-  │     Routes: CalculateRoutes (walking and driving: distance, time, line)
-  └─ AWS Lambda Function URL ── FreshTrack agent (Strands SDK)
-        Amazon Bedrock (Claude), Amazon Location (geocode, routes),
-        Amazon DynamoDB (daily request cap)
-```
+![FreshTrack map architecture: browser to CloudFront and private S3, Amazon Location Maps, Places, and Routes with one restricted key, and the chat agent on Lambda with Bedrock and DynamoDB](docs/map-architecture.svg)
 
 1. **Amazon Location Service (Maps, Places, Routes).** The map uses the Amazon Location Standard style through MapLibre GL JS. When you type an address, Places Geocode finds it. FreshTrack then sorts places by distance and calls Routes CalculateRoutes for real walking and driving times to the nearest 3. The Route button on any place draws the actual walking or driving route, with distance and time, and you can switch between them. Everything uses the v2 APIs, so no map, place index, or route calculator resources are needed, only one API key.
 2. **The API key stays out of git and is locked down.** `deploy/deploy_site.py` creates it so it can only fetch map tiles, geocode, and calculate routes, and only from FreshTrack's own sites (the CloudFront domain and localhost). It fills the key into the deployed copy of `config.js`; the repository copy keeps it empty, so the GitHub Pages mirror runs without it.

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    .bg { fill: #ffffff; }
+    .box { fill: #f6f8fa; stroke: #57606a; stroke-width: 1.5; }
+    .aws { fill: #fff1e5; stroke: #bc4c00; stroke-width: 2; }
+    .loc { fill: #ddf4ff; stroke: #0969da; stroke-width: 2; }
+    .agent { fill: #dafbe1; stroke: #1a7f37; stroke-width: 1.5; }
+    .group { fill: none; stroke: #0969da; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .t { fill: #1f2328; }
+    .s { fill: #57606a; font-size: 12px; }
+    .h { fill: #1f2328; font-weight: 600; }
+    .g { fill: #0969da; font-size: 12px; font-weight: 600; }
+    .line { stroke: #57606a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    #arrow path { fill: #57606a; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .box { fill: #161b22; stroke: #8b949e; }
+      .aws { fill: #3d1d00; stroke: #f0883e; }
+      .loc { fill: #0c2d6b; stroke: #58a6ff; }
+      .agent { fill: #04260f; stroke: #3fb950; }
+      .group { stroke: #58a6ff; }
+      .t, .h { fill: #e6edf3; }
+      .s { fill: #8b949e; }
+      .g { fill: #58a6ff; }
+      .line { stroke: #8b949e; }
+      #arrow path { fill: #8b949e; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <rect class="bg" width="900" height="470" rx="8"/>
+
+  <rect class="box" x="30" y="185" width="190" height="100" rx="8"/>
+  <text class="h" x="125" y="215" text-anchor="middle">Browser</text>
+  <text class="s" x="125" y="237" text-anchor="middle">MapLibre GL JS</text>
+  <text class="s" x="125" y="255" text-anchor="middle">clusters, filters, routes,</text>
+  <text class="s" x="125" y="271" text-anchor="middle">chat panel</text>
+
+  <rect class="aws" x="300" y="30" width="200" height="70" rx="8"/>
+  <text class="h" x="400" y="58" text-anchor="middle">Amazon CloudFront</text>
+  <text class="s" x="400" y="79" text-anchor="middle">HTTPS, compressed, cached</text>
+  <rect class="aws" x="580" y="30" width="200" height="70" rx="8"/>
+  <text class="h" x="680" y="58" text-anchor="middle">Amazon S3 (private)</text>
+  <text class="s" x="680" y="79" text-anchor="middle">index.html, config.js, GeoJSON</text>
+  <path class="line" d="M500 65 H578"/>
+  <text class="s" x="539" y="57" text-anchor="middle">OAC</text>
+  <path class="line" d="M170 185 V65 H298"/>
+
+  <rect class="group" x="300" y="140" width="560" height="140" rx="10"/>
+  <text class="g" x="316" y="162">Amazon Location Service · v2 APIs · one referer-restricted API key</text>
+  <rect class="loc" x="320" y="178" width="160" height="84" rx="8"/>
+  <text class="h" x="400" y="206" text-anchor="middle">Maps</text>
+  <text class="s" x="400" y="227" text-anchor="middle">GetTile</text>
+  <text class="s" x="400" y="245" text-anchor="middle">Standard basemap</text>
+  <rect class="loc" x="500" y="178" width="160" height="84" rx="8"/>
+  <text class="h" x="580" y="206" text-anchor="middle">Places</text>
+  <text class="s" x="580" y="227" text-anchor="middle">Geocode</text>
+  <text class="s" x="580" y="245" text-anchor="middle">typed address → point</text>
+  <rect class="loc" x="680" y="178" width="160" height="84" rx="8"/>
+  <text class="h" x="760" y="206" text-anchor="middle">Routes</text>
+  <text class="s" x="760" y="227" text-anchor="middle">CalculateRoutes</text>
+  <text class="s" x="760" y="245" text-anchor="middle">walk + drive, nearest 3</text>
+  <path class="line" d="M220 225 H298"/>
+
+  <rect class="agent" x="300" y="330" width="230" height="100" rx="8"/>
+  <text class="h" x="415" y="358" text-anchor="middle">AWS Lambda Function URL</text>
+  <text class="s" x="415" y="380" text-anchor="middle">FreshTrack agent (Strands SDK)</text>
+  <text class="s" x="415" y="398" text-anchor="middle">hours guard + fact-checker</text>
+  <text class="s" x="415" y="416" text-anchor="middle">CORS: site only</text>
+  <path class="line" d="M125 285 V380 H298"/>
+  <text class="s" x="140" y="370">chat</text>
+
+  <rect class="box" x="600" y="320" width="250" height="44" rx="8"/>
+  <text class="t" x="725" y="347" text-anchor="middle">Amazon Bedrock (Claude)</text>
+  <rect class="box" x="600" y="376" width="250" height="44" rx="8"/>
+  <text class="t" x="725" y="403" text-anchor="middle">Amazon DynamoDB · daily cap</text>
+  <path class="line" d="M530 360 H598"/>
+  <path class="line" d="M530 398 H598"/>
+  <path class="line" d="M500 330 V300 H760 V264"/>
+  <text class="s" x="630" y="294">geocode, routes</text>
+</svg>

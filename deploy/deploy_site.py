@@ -24,7 +24,7 @@ import boto3
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REGION = "us-east-1"
-SITE_FILES = ["index.html", "config.js", "data/places.geojson", "docs/architecture.svg"]
+SITE_FILES = ["index.html", "config.js", "data/places.geojson", "docs/architecture.svg", "docs/map-architecture.svg"]
 KEY_NAME = "freshtrack-web"
 CACHING_OPTIMIZED = "658327ea-f89d-4fab-a63d-7e88639e58f6"  # AWS managed cache policy
 COMMENT = "FreshTrack map"
