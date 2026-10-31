@@ -187,7 +187,7 @@
       "id": "royal-estates-fourth-thursday",
       "now": "2026-11-26 16:30",
       "expect": {
-        "Royal Estates Mobile Pantry": "open_now"
+        "Royal Estates Mobile Pantry": "closed_today"
       }
     },
     {
@@ -215,7 +215,7 @@
       "id": "bronco-friday-early",
       "now": "2026-11-06 13:00",
       "expect": {
-        "Bronco Food Pantry (WMU students only)": "open_now"
+        "Bronco Food Pantry (WMU students only)": "closed_today"
       }
     },
     {
@@ -244,6 +244,41 @@
       "now": "2026-11-03 10:30",
       "expect": {
         "The Gathering Harvest Food Pantry": "maybe_open"
+      }
+    },
+    {
+      "id": "bronco-monday-corrected",
+      "now": "2026-11-09 15:30",
+      "expect": {
+        "Bronco Food Pantry (WMU students only)": "open_now"
+      }
+    },
+    {
+      "id": "bronco-monday-too-early",
+      "now": "2026-11-09 10:30",
+      "expect": {
+        "Bronco Food Pantry (WMU students only)": "later_today"
+      }
+    },
+    {
+      "id": "bronco-thanksgiving-closed",
+      "now": "2026-11-26 11:00",
+      "expect": {
+        "Bronco Food Pantry (WMU students only)": "closed_today"
+      }
+    },
+    {
+      "id": "bronco-limited-december",
+      "now": "2026-12-16 12:00",
+      "expect": {
+        "Bronco Food Pantry (WMU students only)": "time_unknown"
+      }
+    },
+    {
+      "id": "royal-possible-shift-unconfirmed",
+      "now": "2026-11-19 16:30",
+      "expect": {
+        "Royal Estates Mobile Pantry": "time_unknown"
       }
     }
   ],
@@ -775,6 +810,11 @@
     {
       "id": "no-id-unsupported-spanish",
       "reply": "Kalamazoo Gospel Ministries sirve la cena. No necesitas identificación.",
+      "expect_problems": 1
+    },
+    {
+      "id": "wrong-site-correct-global-time",
+      "reply": "Dream Center closes at 7pm.",
       "expect_problems": 1
     }
   ],
