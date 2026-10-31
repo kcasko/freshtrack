@@ -17,4 +17,4 @@ jobs:
       - run: python eval/run_eval.py
         env:
           FRESHTRACK_OFFLINE: "1"
-      - run: python -m py_compile freshtrack_agent/*.py lambda/nearest.py
+      - run: python -m py_compile freshtrack_agent/*.py

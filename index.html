@@ -146,6 +146,7 @@
   .place .kind.meal { color: #8a5a07; }
   .place h3 { margin: 2px 0 2px; font-size: 17px; line-height: 1.3; }
   .place .addr { color: var(--muted); font-size: 14px; }
+  .place .travel { margin-top: 4px; font-size: 14px; font-weight: 600; color: var(--green); }
   .place .dist { float: right; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 8px; }
   .place details { margin-top: 6px; font-size: 14px; }
   .place summary { cursor: pointer; color: var(--green); font-weight: 600; }
@@ -156,6 +157,7 @@
   #route-panel.visible { display: block; }
   #route-panel p { margin: 0 0 8px; }
   #route-panel .modes { display: flex; gap: 14px; }
+  #route-panel .modes .on { font-weight: 800; text-decoration-thickness: 2px; }
 
   .site-foot { padding: 18px 24px 22px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); }
   .site-foot p { margin: 0 0 8px; }
@@ -326,6 +328,12 @@ function kindHtml(types) {
   return `<div class="kind ${meal ? "meal" : ""}">${types.map((t) => SERVICE_LABEL[t] || t).join(" · ")}</div>`;
 }
 
+// Map labels must use a font the basemap's glyph server has, which differs between basemaps.
+function styleFont() {
+  const stacks = map.getStyle().layers.map((l) => l.layout && l.layout["text-font"]).filter(Array.isArray);
+  return stacks.find((f) => /bold/i.test(f[0]) && !/italic/i.test(f[0])) || stacks[0] || ["Open Sans Bold", "Arial Unicode MS Bold"];
+}
+
 // Tabs
 function showTab(name) {
   ["ask", "browse"].forEach((t) => {
@@ -346,6 +354,7 @@ function cardHtml(f) {
     ${kindHtml(serviceTypes(f))}
     <h3>${esc(p.name)}</h3>
     <div class="addr">${esc(p.address)}</div>
+    ${travelTimes[p.name] ? `<div class="travel">${esc(travelText(travelTimes[p.name]))}</div>` : ""}
     <details><summary>Hours and notes</summary><p>${esc(p.hours_note)}</p><p>${esc(p.note)}</p>${p.source ? `<p><a href="${esc(p.source)}" target="_blank" rel="noopener">Source</a></p>` : ""}</details>
     <div class="actions">${p.phone ? telLink(p.phone) : ""}<button type="button" class="route-btn">Route</button></div>
   </article>`;
@@ -390,61 +399,108 @@ function clearStart() {
 }
 
 // Routes
-function drawLine(coords) {
+function drawLine(coords, mode) {
   const data = { type: "Feature", geometry: { type: "LineString", coordinates: coords }, properties: {} };
   if (map.getSource("route")) map.getSource("route").setData(data);
   else {
     map.addSource("route", { type: "geojson", data });
-    map.addLayer({ id: "route-line", type: "line", source: "route", paint: { "line-color": "#1f5135", "line-width": 4, "line-dasharray": [2, 1.5] } });
+    map.addLayer({ id: "route-line", type: "line", source: "route", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#1f5135", "line-width": 5 } });
   }
+  // Walking and straight lines are dashed; driving is solid.
+  map.setPaintProperty("route-line", "line-dasharray", mode === "driving" ? [1, 0] : [1.2, 1.4]);
+  map.setPaintProperty("route-line", "line-color", mode === "straight" ? "#5b625d" : "#1f5135");
 }
+// Amazon Location Service (v2 APIs), called from the browser with the restricted API key in config.js.
+const hasAmazon = Boolean(config.apiKey);
+async function amazonRoute(from, to, mode) {
+  const url = `https://routes.geo.${config.region}.amazonaws.com/v2/routes?key=${encodeURIComponent(config.apiKey)}`;
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ Origin: from, Destination: to, TravelMode: mode === "walking" ? "Pedestrian" : "Car", LegGeometryFormat: "Simple" }) });
+  if (!res.ok) throw new Error(`Route request failed (${res.status})`);
+  const route = (await res.json()).Routes[0];
+  let meters = 0, seconds = 0, line = [];
+  for (const leg of route.Legs) {
+    const summary = ((leg.PedestrianLegDetails || leg.VehicleLegDetails || {}).Summary || {}).Overview || {};
+    meters += summary.Distance || 0;
+    seconds += summary.Duration || 0;
+    if (leg.Geometry && leg.Geometry.LineString) line = line.concat(leg.Geometry.LineString);
+  }
+  return { miles: meters / 1609.34, minutes: Math.max(1, Math.round(seconds / 60)), line };
+}
+async function amazonGeocode(text) {
+  const url = `https://places.geo.${config.region}.amazonaws.com/v2/geocode?key=${encodeURIComponent(config.apiKey)}`;
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ QueryText: text, BiasPosition: DOWNTOWN, Filter: { IncludeCountries: ["USA"] }, MaxResults: 1 }) });
+  if (!res.ok) throw new Error(`Geocode failed (${res.status})`);
+  const item = (await res.json()).ResultItems[0];
+  return item ? { position: item.Position, label: item.Title || text } : null;
+}
+function travelText(t) {
+  return `${t.walking.minutes} min walk (${t.walking.miles.toFixed(1)} mi) · ${t.driving.minutes} min drive`;
+}
+
+// Routes: walking and driving at once, so people can compare.
+let routeLines = {};
 async function calculateRoute(destination, name) {
   routeDestination = destination;
   routeName = name;
   $("route-panel").classList.add("visible");
   const text = $("route-text");
-  text.textContent = `Finding a ${routeMode} route to ${name}...`;
-  if (config.apiKey && config.routeCalculatorName) {
+  text.textContent = `Finding walking and driving routes to ${name}...`;
+  if (hasAmazon) {
     try {
-      const url = `https://routes.geo.${config.region}.amazonaws.com/routes/v0/calculators/${config.routeCalculatorName}/calculate/route?key=${config.apiKey}`;
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ DeparturePosition: startPoint, DestinationPosition: destination, TravelMode: routeMode === "walking" ? "Walking" : "Car", IncludeLegGeometry: true }) });
-      if (!res.ok) throw new Error("Route request failed");
-      const data = await res.json();
-      const leg = data.Legs && data.Legs[0];
-      if (leg && leg.Summary) {
-        text.textContent = `${name}: ${(leg.Summary.Distance / 1609.34).toFixed(1)} miles, about ${Math.round(leg.Summary.DurationSeconds / 60)} minutes ${routeMode}.`;
-      }
-      drawLine(leg && leg.Geometry && leg.Geometry.LineString ? leg.Geometry.LineString : [startPoint, destination]);
+      const [walking, driving] = await Promise.all([amazonRoute(startPoint, destination, "walking"), amazonRoute(startPoint, destination, "driving")]);
+      routeLines = { walking: walking.line, driving: driving.line };
+      text.textContent = `${name} from ${startLabel}: ${travelText({ walking, driving })}. Routes by Amazon Location Service.`;
+      showRouteMode();
       return;
     } catch (err) {
       console.error(err);
     }
   }
-  // Without a route calculator, show the straight-line distance and never guess a travel time.
+  // Without routing, show the straight-line distance and never guess a travel time.
+  routeLines = {};
   text.textContent = `${name} is ${haversineMiles(startPoint, destination).toFixed(1)} miles from ${startLabel} in a straight line. Ask FreshTrack for walking or driving time.`;
-  drawLine([startPoint, destination]);
+  drawLine([startPoint, destination], "straight");
   map.fitBounds([startPoint, destination], { padding: 80 });
 }
+function showRouteMode() {
+  const line = routeLines[routeMode];
+  if (!line || !line.length) return;
+  drawLine(line, routeMode);
+  ["walking", "driving"].forEach((m) => $(`route-${m}`).classList.toggle("on", m === routeMode));
+  const lons = line.map((p) => p[0]), lats = line.map((p) => p[1]);
+  map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 80, maxZoom: 16 });
+}
+
+// Address search: geocode with Amazon Location, then real travel times to the nearest 3.
+let travelTimes = {};
 async function findByAddress() {
   const text = $("address").value.trim();
   if (!text) { $("address").focus(); return; }
-  if (config.lambdaEndpoint) {
+  if (hasAmazon) {
+    $("start-note").textContent = `Looking up ${text}...`;
     try {
-      const res = await fetch(config.lambdaEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: text }) });
-      const data = await res.json();
-      if (data.longitude && data.latitude) { setStart([data.longitude, data.latitude], true, text); return; }
-    } catch (err) { console.error(err); }
+      const found = await amazonGeocode(text);
+      if (found) {
+        travelTimes = {};
+        setStart(found.position, true, found.label);
+        const nearest = filteredPlaces().slice(0, 3);
+        const times = await Promise.all(nearest.map(async (f) => {
+          const [walking, driving] = await Promise.all([amazonRoute(startPoint, f.geometry.coordinates, "walking"), amazonRoute(startPoint, f.geometry.coordinates, "driving")]);
+          return [f.properties.name, { walking, driving }];
+        }));
+        travelTimes = Object.fromEntries(times);
+        renderList();
+        return;
+      }
+      $("start-note").textContent = `Couldn't find "${text}". Try a street address or ZIP code.`;
+      return;
+    } catch (err) {
+      console.error(err);
+    }
   }
-  if (config.apiKey && config.placeIndexName) {
-    try {
-      const url = `https://places.geo.${config.region}.amazonaws.com/places/v0/indexes/${config.placeIndexName}/search/text?key=${config.apiKey}`;
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Text: text, BiasPosition: startPoint, MaxResults: 1 }) });
-      const data = await res.json();
-      const result = data.Results && data.Results[0];
-      if (result && result.Place && result.Place.Geometry && result.Place.Geometry.Point) { setStart(result.Place.Geometry.Point, true, text); return; }
-    } catch (err) { console.error(err); }
-  }
-  // No geocoder on the static site: hand the question to the agent, which can look up any address.
+  // No geocoder available: hand the question to the agent, which can look up any address.
   showTab("ask");
   sendChat(`What food help is near ${text}?`);
 }
@@ -500,7 +556,7 @@ function highlightPlaces(places) {
     map.addLayer({ id: "highlight-ring", type: "circle", source: "highlight", paint: { "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 9, 14, 15], "circle-color": "rgba(217,147,28,0.2)", "circle-stroke-color": "#d9931c", "circle-stroke-width": 3 } }, "clusters");
     map.addLayer({ id: "highlight-dot", type: "circle", source: "highlight", paint: { "circle-color": ["match", ["get", "category"], "soup_kitchen", "#d9931c", "#1f5135"], "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 4, 14, 7], "circle-stroke-color": "#fffefb", "circle-stroke-width": 1.5 } }, "clusters");
     // Labels move to whichever side has room, and stay hidden when zoomed far out, where they would pile up.
-    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", minzoom: 11.5, layout: { "text-field": ["get", "name"], "text-font": ["Montserrat SemiBold", "Open Sans Bold", "Noto Sans Regular"], "text-size": 12, "text-variable-anchor": ["top", "bottom", "left", "right"], "text-radial-offset": 1.5, "text-justify": "auto", "text-max-width": 11 }, paint: { "text-color": "#1a1f1c", "text-halo-color": "#fffefb", "text-halo-width": 2 } });
+    map.addLayer({ id: "highlight-label", type: "symbol", source: "highlight", minzoom: 11.5, layout: { "text-field": ["get", "name"], "text-font": styleFont(), "text-size": 12, "text-variable-anchor": ["top", "bottom", "left", "right"], "text-radial-offset": 1.5, "text-justify": "auto", "text-max-width": 11 }, paint: { "text-color": "#1a1f1c", "text-halo-color": "#fffefb", "text-halo-width": 2 } });
     ["highlight-ring", "highlight-dot"].forEach((layer) => {
       map.on("click", layer, (e) => {
         const f = allPlaces.find((p) => p.properties.name === e.features[0].properties.name);
@@ -575,7 +631,7 @@ async function init() {
   const res = await fetch("data/places.geojson");
   const geojson = await res.json();
   allPlaces = geojson.features || [];
-  const style = config.apiKey && config.amazonStyleUrl ? config.amazonStyleUrl() : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+  const style = hasAmazon ? config.amazonStyleUrl() : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
   // The service covers Kalamazoo County only, so keep the view there: zoomed further out, everything collapses into one cluster.
   map = new maplibregl.Map({
     container: "map", style, center: [-85.6, 42.27], zoom: 11.3,
@@ -586,7 +642,7 @@ async function init() {
   map.on("load", () => {
     map.addSource("places", { type: "geojson", data: { type: "FeatureCollection", features: filteredPlaces() }, cluster: true, clusterMaxZoom: 13, clusterRadius: 40 });
     map.addLayer({ id: "clusters", type: "circle", source: "places", filter: ["has", "point_count"], paint: { "circle-color": "#1f5135", "circle-radius": ["step", ["get", "point_count"], 15, 5, 19, 10, 24], "circle-stroke-color": "#fffefb", "circle-stroke-width": 2 } });
-    map.addLayer({ id: "cluster-count", type: "symbol", source: "places", filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count"], "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"], "text-size": 13 }, paint: { "text-color": "#fff" } });
+    map.addLayer({ id: "cluster-count", type: "symbol", source: "places", filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count"], "text-font": styleFont(), "text-size": 13 }, paint: { "text-color": "#fff" } });
     map.addLayer({ id: "points", type: "circle", source: "places", filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["match", ["get", "category"], "soup_kitchen", "#d9931c", "#1f5135"], "circle-radius": 8, "circle-stroke-color": "#fffefb", "circle-stroke-width": 2 } });
     map.on("click", "clusters", (e) => {
       const features = map.queryRenderedFeatures(e.point, { layers: ["clusters"] });
@@ -623,8 +679,8 @@ async function init() {
     navigator.geolocation.getCurrentPosition((pos) => setStart([pos.coords.longitude, pos.coords.latitude], true, "your location"), () => { $("start-note").textContent = "Location permission was denied. Tap the map to set a pin instead."; });
   });
   $("reset-start").addEventListener("click", clearStart);
-  $("route-driving").addEventListener("click", () => { routeMode = "driving"; if (routeDestination) calculateRoute(routeDestination, routeName); });
-  $("route-walking").addEventListener("click", () => { routeMode = "walking"; if (routeDestination) calculateRoute(routeDestination, routeName); });
+  $("route-driving").addEventListener("click", () => { routeMode = "driving"; showRouteMode(); });
+  $("route-walking").addEventListener("click", () => { routeMode = "walking"; showRouteMode(); });
 }
 init().catch((err) => {
   $("list").innerHTML = `<p class="list-head">The places list didn't load. Call Kalamazoo Loaves &amp; Fishes at 269-343-3663, or dial 2-1-1.</p>`;
