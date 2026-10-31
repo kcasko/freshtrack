@@ -280,6 +280,13 @@
       "expect": {
         "Royal Estates Mobile Pantry": "time_unknown"
       }
+    },
+    {
+      "id": "royal-christmas-eve-unconfirmed",
+      "now": "2026-12-24 16:30",
+      "expect": {
+        "Royal Estates Mobile Pantry": "time_unknown"
+      }
     }
   ],
   "search_cases": [
@@ -871,6 +878,22 @@
       "message": "Where can I get groceries tonight?",
       "reply": "Valley Family Church opens at 5:30pm.",
       "expect_added": []
+    },
+    {
+      "id": "arabic-faint-adds-911",
+      "message": "أشعر أنني سأفقد الوعي وأحتاج إلى الطعام",
+      "reply": "يمكنك الحصول على الطعام.",
+      "expect_added": [
+        "911"
+      ]
+    },
+    {
+      "id": "arabic-suicide-adds-988",
+      "message": "أريد أن أموت",
+      "reply": "نستطيع مساعدتك في إيجاد الطعام.",
+      "expect_added": [
+        "988"
+      ]
     }
   ]
 }
