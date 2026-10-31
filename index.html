@@ -180,6 +180,21 @@
     .composer { position: sticky; bottom: 0; }
     .intro h1 { font-size: 22px; }
   }
+  /* Narrow screens and 200% browser zoom must not create side-scrolling. */
+  @media (max-width: 380px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .panel, .composer, .tab-body, .map-wrap { min-width: 0; }
+    .tabs { gap: 12px; }
+    .composer-foot { flex-wrap: wrap; }
+    .clock { flex-wrap: wrap; max-width: 100%; }
+    .clock input { min-width: 0; max-width: 100%; }
+    .legend { max-width: calc(100% - 16px); flex-wrap: wrap; }
+    .segmented { flex-wrap: wrap; }
+    .segmented button { min-width: 54px; }
+    .masthead { min-width: 0; }
+    .masthead .help { font-size: 13px; }
+    .wordmark { font-size: 19px; }
+  }
 </style>
 </head>
 <body>
