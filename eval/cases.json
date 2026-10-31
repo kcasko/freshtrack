@@ -840,6 +840,11 @@
       "id": "keeps-lines",
       "text": "Kalamazoo Gospel Mission\n448 N Burdick St",
       "expect": "Kalamazoo Gospel Mission\n448 N Burdick St"
+    },
+    {
+      "id": "repeated-sentences",
+      "text": "Call 911 now. This is a medical emergency.\n\nCall 911 now. This is a medical emergency.\n\nMinistry with Community serves lunch.",
+      "expect": "Call 911 now. This is a medical emergency.\n\nMinistry with Community serves lunch."
     }
   ],
   "safety_cases": [

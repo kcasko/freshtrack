@@ -182,11 +182,21 @@ FILLER = re.compile(
 
 
 def tidy_for_sms(text):
-    """Drop filler sentences and markdown bold, which SMS shows as literal asterisks."""
-    lines = []
+    """Drop filler sentences, repeated sentences, and markdown bold (SMS shows it as literal asterisks).
+
+    Repeats happen when the agent answers briefly before a tool call and again after it.
+    """
+    lines, seen = [], set()
     for line in text.replace("**", "").split("\n"):
         sentences = re.split(r"(?<=[.!?؟])\s+", line.strip())
-        kept = " ".join(s for s in sentences if not FILLER.search(s))
+        kept_sentences = []
+        for sentence in sentences:
+            key = sentence.strip().lower()
+            if FILLER.search(sentence) or (key and key in seen):
+                continue
+            seen.add(key)
+            kept_sentences.append(sentence)
+        kept = " ".join(kept_sentences)
         if kept or line.strip() == "":
             lines.append(kept)
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
