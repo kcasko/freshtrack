@@ -8,7 +8,7 @@
 
 Real food help in Kalamazoo County, Michigan: a Strands agent that answers "where can I get food, right now?" in plain language, in the person's own language, plus an explorable map with routing to the nearest sites.
 
-**Try it live: [kcasko.github.io/freshtrack](https://kcasko.github.io/freshtrack/).** Use the Ask FreshTrack panel above the map, in any language. The live demo allows 500 questions a day.
+**Try it live: [d7ua6xibk1726.cloudfront.net](https://d7ua6xibk1726.cloudfront.net/)** (Amazon S3 + CloudFront, with the Amazon Location map). The [GitHub Pages mirror](https://kcasko.github.io/freshtrack/) runs without the map key. Use the Ask FreshTrack panel above the map, in any language. The live demo allows 500 questions a day.
 
 > **you:** I'm in 49007 and need groceries tonight. I don't have a car.
 >
@@ -171,7 +171,7 @@ Browser (MapLibre GL JS)
 ```
 
 1. **Amazon Location Service (Maps, Places, Routes).** The map uses the Amazon Location Standard style through MapLibre GL JS. When you type an address, Places Geocode finds it. FreshTrack then sorts places by distance and calls Routes CalculateRoutes for real walking and driving times to the nearest 3. The Route button on any place draws the actual walking or driving route, with distance and time, and you can switch between them. Everything uses the v2 APIs, so no map, place index, or route calculator resources are needed, only one API key.
-2. **The API key is safe in browser code.** `deploy/deploy_site.py` creates it so it can only fetch map tiles, geocode, and calculate routes, and only from FreshTrack's own sites (the CloudFront domain, GitHub Pages, and localhost).
+2. **The API key stays out of git and is locked down.** `deploy/deploy_site.py` creates it so it can only fetch map tiles, geocode, and calculate routes, and only from FreshTrack's own sites (the CloudFront domain and localhost). It fills the key into the deployed copy of `config.js`; the repository copy keeps it empty, so the GitHub Pages mirror runs without it.
 3. **Amazon S3 + CloudFront.** The bucket stays private. CloudFront reads it through Origin Access Control and serves the site over HTTPS, compressed and cached. The page and config are served with `no-cache` so updates show up right away.
 4. **AWS Lambda.** The chat agent runs on a Lambda Function URL (see [Chat on the map](#chat-on-the-map)).
 5. **Fallbacks.** Without an API key, the map uses a free demo basemap, the Route button shows straight-line miles (it never guesses a travel time), and typed addresses go to the chat agent, which can geocode them server-side.
@@ -182,7 +182,7 @@ Browser (MapLibre GL JS)
 python deploy/local_server.py       # map + chat agent, http://localhost:8000
 ```
 
-The API key allows `http://localhost:8000`, so the Amazon Location basemap, search, and routes work locally too. Don't just double-click `index.html`: browsers block the GeoJSON fetch from a file URL.
+The local server fills the Amazon Location API key into `config.js` from your AWS account, so the Amazon basemap, search, and routes work locally too. Don't just double-click `index.html`: browsers block the GeoJSON fetch from a file URL.
 
 ## Deploy
 
@@ -191,7 +191,7 @@ python deploy/deploy_site.py        # S3 bucket, CloudFront, API key, upload, ca
 python deploy/deploy.py             # chat Lambda, DynamoDB cap, IAM role, Function URL
 ```
 
-`deploy_site.py` prints the API key value for `config.js` the first time. Run it again after any change to upload the files and clear the CloudFront cache; `--files` skips the key and policy steps. Set a billing alarm before sharing the link. To take everything down, delete the `freshtrack-*` resources: the S3 bucket, CloudFront distribution, Location API key, Lambda function, IAM role, and DynamoDB table.
+The API key never goes in git: `config.js` keeps an empty `apiKey`, and `deploy_site.py` fills it into the copy it uploads to S3. Run it again after any change to upload the files and clear the CloudFront cache; `--files` skips the key and policy steps. Set a billing alarm before sharing the link. To take everything down, delete the `freshtrack-*` resources: the S3 bucket, CloudFront distribution, Location API key, Lambda function, IAM role, and DynamoDB table.
 
 ## Demo video outline (under 3 minutes)
 

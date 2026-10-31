@@ -37,7 +37,7 @@ MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 FOUNDATION_MODEL = "anthropic.claude-haiku-4-5-20251001-v1:0"
 # Windows-only, local-login-only, or already in the Lambda runtime.
 SKIP_PACKAGES = {"pywin32", "pywin32-ctypes", "awscrt", "pip", "setuptools", "wheel"}
-DEFAULT_ORIGINS =["https://kcasko.github.io", "http://localhost:8000", "http://127.0.0.1:8000"]
+DEFAULT_ORIGINS = ["https://d7ua6xibk1726.cloudfront.net", "https://kcasko.github.io", "http://localhost:8000", "http://127.0.0.1:8000"]
 
 
 def build_zip():

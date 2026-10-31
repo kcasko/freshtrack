@@ -7,7 +7,8 @@ Creates or updates:
 - S3 bucket freshtrack-site-<account>: private, never public; CloudFront reads it through Origin Access Control
 - CloudFront distribution for the bucket, HTTPS only, compressed, with index.html at the root
 - Amazon Location API key freshtrack-web: only map tiles, geocoding, and routes, and only from the
-  site's own addresses (CloudFront, GitHub Pages, localhost). Its value goes in config.js as apiKey.
+  site's own addresses (CloudFront and localhost). The key is never stored in git:
+  this script fills it into the copy of config.js it uploads.
 
 Prints the site URL. Run deploy/deploy.py afterwards so the chat Lambda allows the CloudFront origin.
 """
@@ -98,15 +99,23 @@ def ensure_key(location, referers):
     return location.describe_key(KeyName=KEY_NAME)["Key"]
 
 
-def upload(s3, bucket):
+def upload(s3, bucket, api_key):
     for rel in SITE_FILES:
         kind = mimetypes.guess_type(rel)[0] or "application/octet-stream"
         if rel.endswith(".geojson"):
             kind = "application/geo+json"
-        extra = {"ContentType": kind + ("; charset=utf-8" if kind.startswith(("text/", "application/javascript")) else "")}
+        content_type = kind + ("; charset=utf-8" if kind.startswith(("text/", "application/javascript")) else "")
         # Pages and config change often; keep them fresh. Other files can cache for an hour.
-        extra["CacheControl"] = "no-cache" if rel in ("index.html", "config.js") else "max-age=3600"
-        s3.upload_file(os.path.join(ROOT, rel), bucket, rel, ExtraArgs=extra)
+        cache = "no-cache" if rel in ("index.html", "config.js") else "max-age=3600"
+        with open(os.path.join(ROOT, rel), "rb") as handle:
+            body = handle.read()
+        if rel == "config.js":
+            # The key never lives in git; it goes only into the deployed copy.
+            text = body.decode("utf-8")
+            if 'apiKey: ""' not in text:
+                raise SystemExit("config.js in git should have an empty apiKey")
+            body = text.replace('apiKey: ""', f'apiKey: "{api_key}"', 1).encode("utf-8")
+        s3.put_object(Bucket=bucket, Key=rel, Body=body, ContentType=content_type, CacheControl=cache)
         print(f"uploaded {rel}")
 
 
@@ -122,13 +131,13 @@ def main():
 
     ensure_bucket(s3, bucket)
     dist_id, domain, dist_arn = ensure_distribution(cf, bucket)
+    location = session.client("location")
     if not args.files:
         allow_cloudfront(s3, bucket, dist_arn)
-        key = ensure_key(session.client("location"), [
-            f"https://{domain}/*", "https://kcasko.github.io/*",
+        ensure_key(location, [
+            f"https://{domain}/*",
             "http://localhost:8000/*", "http://localhost:8001/*", "http://127.0.0.1:8000/*"])
-        print(f"\napiKey for config.js: {key['Key']}")
-    upload(s3, bucket)
+    upload(s3, bucket, location.describe_key(KeyName=KEY_NAME)["Key"])
     cf.create_invalidation(DistributionId=dist_id, InvalidationBatch={
         "Paths": {"Quantity": 1, "Items": ["/*"]}, "CallerReference": str(time.time())})
     print(f"\nsite: https://{domain}/")

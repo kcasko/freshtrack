@@ -363,7 +363,9 @@ function renderList() {
   const places = filteredPlaces();
   $("place-count").textContent = `(${places.length})`;
   $("list-heading").textContent = `${places.length} ${places.length === 1 ? "place" : "places"}, nearest first`;
-  $("start-note").textContent = `Distances from ${startLabel}, straight line.`;
+  $("start-note").textContent = Object.keys(travelTimes).length
+    ? `From ${startLabel}. Walk and drive times for the nearest 3 by Amazon Location; other distances are straight-line.`
+    : `Distances from ${startLabel}, straight line.`;
   $("reset-start").hidden = !startIsPinned;
   $("list").innerHTML = places.map(cardHtml).join("") || `<p class="list-head">Nothing matches that filter.</p>`;
   $("list").querySelectorAll(".place").forEach((el) => {
@@ -380,6 +382,7 @@ function updateMapSource() {
   if (map && map.getSource("places")) map.getSource("places").setData({ type: "FeatureCollection", features });
 }
 function setStart(point, fly, label) {
+  travelTimes = {};  // times belong to the old starting point
   startPoint = point;
   startIsPinned = true;
   startLabel = label || "your pin";
@@ -390,6 +393,7 @@ function setStart(point, fly, label) {
   renderList();
 }
 function clearStart() {
+  travelTimes = {};
   if (startMarker) { startMarker.remove(); startMarker = null; }
   startIsPinned = false;
   startPoint = DOWNTOWN;
@@ -433,10 +437,15 @@ async function amazonGeocode(text) {
     body: JSON.stringify({ QueryText: text, BiasPosition: DOWNTOWN, Filter: { IncludeCountries: ["USA"] }, MaxResults: 1 }) });
   if (!res.ok) throw new Error(`Geocode failed (${res.status})`);
   const item = (await res.json()).ResultItems[0];
-  return item ? { position: item.Position, label: item.Title || text } : null;
+  // "1200 Portage St, Kalamazoo, MI 49001-3017, United States" -> "1200 Portage St, Kalamazoo, MI"
+  const label = (item && item.Title ? item.Title : text).replace(/,?\s*United States$/, "").replace(/\s+\d{5}(-\d{4})?$/, "");
+  return item ? { position: item.Position, label } : null;
+}
+function duration(minutes) {
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} hr ${minutes % 60} min`;
 }
 function travelText(t) {
-  return `${t.walking.minutes} min walk (${t.walking.miles.toFixed(1)} mi) · ${t.driving.minutes} min drive`;
+  return `${duration(t.walking.minutes)} walk (${t.walking.miles.toFixed(1)} mi) · ${duration(t.driving.minutes)} drive`;
 }
 
 // Routes: walking and driving at once, so people can compare.
