@@ -469,7 +469,7 @@ function addMeta(el, data) {
   meta.className = "meta";
   const check = document.createElement("span");
   check.className = "ok";
-  check.textContent = data.guard && data.guard.rewritten ? "Corrected and checked against schedules" : "Checked against schedules";
+  check.textContent = data.guard && data.guard.rewritten ? "Automated correction applied; confirm before travel" : "Automated schedule check; confirm before travel";
   meta.appendChild(check);
   const when = document.createElement("span");
   when.textContent = `as of ${data.now}`;
@@ -531,7 +531,14 @@ async function sendChat(text) {
   if (nowValue) body.now = nowValue.replace("T", " ");
   try {
     if (!config.chatEndpoint) throw new Error("No chat endpoint is set in config.js.");
-    const res = await fetch(config.chatEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
+    let res;
+    try {
+      res = await fetch(config.chatEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
     const data = await res.json().catch(() => ({}));
     pending.remove();
     if (!res.ok || !data.reply) {
