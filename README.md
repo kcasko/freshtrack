@@ -142,7 +142,7 @@ No message text, location, or IP address is stored. The usage table holds a date
 
 ### How the data was checked (October 30, 2026)
 
-A November 2025 county food resource list had about 35 places. Each one was cross-checked against what is published now. **A place was added only if a current source confirmed it:** its own website, the Loaves & Fishes 2026 schedule, WMU's pantry page, or 2026 reporting.
+A November 2025 county food resource list, shared in local community Facebook groups, had about 35 places. Each one was cross-checked against what is published now. **A place was added only if a current source confirmed it:** its own website, the Loaves & Fishes 2026 schedule, WMU's pantry page, or 2026 reporting.
 
 - **Added:** 8 Loaves & Fishes mobile sites (plus mobile dates at Sunnyside), The Gathering Harvest, Christian Neighbors (its own site lists different hours than the 2025 list, and those are what FreshTrack uses), the Royal Estates mobile pantry, the Bronco Food Pantry, and Milestone Senior Services.
 - **Corrected:** Ministry with Community's phone (269-343-6073) and lunch start (12:30pm). Gospel Mission's dinner now ends at 6pm, and the mission is now named Kalamazoo Gospel Ministries. The Salvation Army mobile distribution ended in July 2026, and the Salvation Army's own once-every-90-days rule was added.

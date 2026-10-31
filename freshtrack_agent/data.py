@@ -15,6 +15,7 @@ DATA_DIR = os.environ.get(
 )
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 ORDINALS = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th"}
+UNKNOWN_END_MINUTES = 180
 
 
 def _load(name):
@@ -126,7 +127,7 @@ def status_at(site, now):
 
     status is one of:
       open_now        a listed window covers now
-      maybe_open      a window started today but its end time is not listed
+      maybe_open      a window started within the last few hours and its end time is not listed
       time_unknown    the site runs today but the source gives no time
       later_today     a window opens later today
       closed_today    nothing today
@@ -141,7 +142,9 @@ def status_at(site, now):
     # Checked in priority order: a definite answer beats a vague one.
     candidates = [
         ("open_now", first(lambda s, e: s <= minute and e and minute < _minutes(e))),
-        ("maybe_open", first(lambda s, e: s <= minute and e is None)),
+        # With no listed end, assume a window may still be running for a few
+        # hours, not all day: a 9am produce stand is not "maybe open" at 5pm.
+        ("maybe_open", first(lambda s, e: s <= minute < s + UNKNOWN_END_MINUTES and e is None)),
         ("later_today", first(lambda s, e: minute < s)),
         ("time_unknown", next((w for w in today if not w.get("start")), None)),
     ]
