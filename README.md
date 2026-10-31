@@ -14,7 +14,7 @@ Real food help in Kalamazoo County, Michigan: a Strands agent that answers "wher
 >
 > **FreshTrack:** Good news! Valley Family Church opens in 30 minutes at 5:30pm tonight for groceries. It's 4 miles away. Since you don't have a car, call them at 269-324-5599 to ask about getting there.
 >
-> If you need food right now, Kalamazoo Gospel Mission is open now for dinner (4:30-6:30pm) and is very close to you. Call 269-345-2974 to confirm.
+> If you need food right now, Kalamazoo Gospel Mission is open now for dinner (4:30-6pm) and is very close to you. Call 269-345-2974 to confirm.
 
 *A real reply from the evaluation, with the clock pinned to Tuesday, November 3, 5:00pm.*
 
@@ -40,19 +40,19 @@ Pantry hours in Kalamazoo County are things like "4th Saturday, 9am" or "Mondays
 
 - **The tools do the facts, the model does the talking.** `data/schedules.json` turns each site's published hours into structured windows (nth weekday of the month, excluded weeks, unknown end times, sources that conflict). `status_at()` says open now, maybe open, later today, time unknown, or closed, with no AI involved, so it can be tested exactly.
 - **Amazon Location Service v2.** `geo-places` Geocode turns a street, landmark, or ZIP into a point. `geo-routes` CalculateRoutes gives real walking and driving time. If routing fails, the agent gives straight-line miles and says so. It never guesses a travel time.
-- **Hours guard.** Every clock time and phone number in a reply is checked against the dataset, and each phone number must belong to the site it is given for, so the agent can't hand out one pantry's number for another. It also flags promises about what pantries ask, like "they don't ask about immigration status." A Strands `AfterToolCallEvent` hook records each tool result, and if the guard fails, a second agent rewrites the reply from those results alone. Bare times like "6:30 مساءً" count as either am or pm, so replies in other languages aren't rejected by mistake.
+- **Hours guard.** Every clock time and phone number in a reply is checked against the dataset, and each phone number must belong to the site it is given for, but this automated check does not guarantee schedule accuracy. It also flags promises about what pantries ask, like "they don't ask about immigration status." A Strands `AfterToolCallEvent` hook records each tool result, and if the guard fails, a second agent rewrites the reply from those results alone. Bare times like "6:30 مساءً" count as either am or pm, so replies in other languages aren't rejected by mistake.
 - **Made for texting.** Short replies, 6th-grade reading level, the reply comes back in whatever language the person wrote in, no markdown, no "let me check" narration, never asks about income or immigration status.
 - **Safety first.** A medical emergency gets 911 first. Thoughts of suicide get 988 (Suicide and Crisis Lifeline) first. A location outside the county gets 2-1-1.
 
 ### Results
 
-`python eval/run_eval.py --agent --baseline --runs 3`, Claude Haiku 4.5 on Amazon Bedrock, run October 30, 2026 against the verified 29-place dataset. 34 realistic requests, each run 3 times (102 replies), in English, Spanish, Arabic, French, Swahili, Vietnamese, and Chinese, with the clock pinned to a specific time in November 2026. They include:
+`python eval/run_eval.py --agent --baseline --runs 3`, Claude Haiku 4.5 on Amazon Bedrock, run October 30, 2026 against the 29-place dataset at that time. These historical scores have not been rerun after the latest corrections. 34 realistic requests, each run 3 times (102 replies), in English, Spanish, Arabic, French, Swahili, Vietnamese, and Chinese, with the clock pinned to a specific time in November 2026. They include:
 - a medical emergency, a suicidal message, and an out-of-county address
 - an undocumented person asking if they qualify, and someone with no ID
 - a WMU student, a homebound senior, and a Plainwell resident
 - an appointment-only pantry, a pantry with no listed time, and sources that disagree
 
-The baseline is the same model and system prompt with no tools.
+The baseline is the same model and system prompt with no tools. Its prompt still tells it to call tools, so this is not a fair comparison with a purpose-built tool-free assistant.
 
 | Metric (102 replies) | FreshTrack | Same model, no tools |
 |---|---|---|
@@ -70,7 +70,7 @@ The guard caught 7 of 102 drafts, and the fact-checker fixed all 7 before anyone
 - 5 claimed "no ID needed" for places that don't publish that. The Loaves & Fishes mobile pantries do publish it, and the guard allows the claim for them.
 - 2 put Ministry with Community's phone number next to Gospel Ministries' name.
 
-No reply needed the safe fallback.
+No reply needed the safe fallback in that historical evaluation. The string-based checks do not prove that a time belongs to the right place and date.
 
 Earlier runs shaped the safeguards. One reply told an undocumented person that pantries "don't ask about immigration status," which led to the unsupported-promise check. In another run, 2 of 3 replies to "I feel like I'm going to pass out" left out 911. The prompt rule alone wasn't reliable, so code now adds a 911 line (or 988 for a suicidal message) whenever the reply leaves it out.
 
@@ -117,10 +117,10 @@ python deploy/deploy.py
 The deploy script creates or updates four resources named `freshtrack-chat*`: a DynamoDB usage table, an IAM role scoped to the one Bedrock model, Amazon Location, and that table, the Lambda function, and its Function URL. It prints the URL to put in `config.js` as `chatEndpoint`. Because the URL is public and every call costs Bedrock tokens, it is protected by:
 - a cap of 500 requests per day, counted atomically in DynamoDB (`--daily-limit`)
 - reserved concurrency of 3 (`--concurrency`), when the account's concurrency quota allows it. The demo account's quota was too low to reserve any, so there the daily cap is what limits cost.
-- browser access only from the GitHub Pages site and localhost (CORS)
+- CORS permits listed browser origins, but does not prevent direct requests from non-browser clients; the public URL has no authentication or per-user throttling
 - message, history, and pin size checks
 
-No message text, location, or IP address is stored. The usage table holds a date and a count.
+The application's usage table stores only a date and count, not message text, location, or IP. This does not prove AWS service logs and exceptions never contain request-derived data. Review CloudWatch retention and error logging before making broader privacy guarantees.
 
 ## The map: what it does
 
@@ -130,6 +130,10 @@ No message text, location, or IP address is stored. The usage table holds a date
 - Click the map to set a starting point, or use your location, and see sites sorted by distance
 - Click Calculate route on any card for a driving or walking route
 - Clusters dense areas at high zoom, expanding into pins with hours and intake notes
+
+## Current data reliability notice
+
+The WMU Fall 2026 hours and Thanksgiving/winter closures were corrected after an external audit. Royal Estates Thanksgiving-week dates remain unconfirmed. Do not assume a November 19 or 26 distribution is scheduled. Automated checks cannot guarantee an organization is open. Call before traveling. The October 30 results shown above predate these corrections.
 
 ## Dataset
 
