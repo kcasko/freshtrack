@@ -46,13 +46,23 @@ def build_zip():
     # developer's entire environment pulls unrelated tools into Lambda and
     # can fail when those tools have no Linux/Python 3.12 wheels.
     with tempfile.TemporaryDirectory() as build:
-        subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--quiet", "--disable-pip-version-check",
-             "--platform", "manylinux2014_x86_64", "--python-version", "3.12",
-             "--implementation", "cp", "--only-binary=:all:", "--target", build,
-             "-r", os.path.join(ROOT, "requirements.txt")],
-            check=True,
-        )
+        requirements = os.path.join(ROOT, "requirements.txt")
+        if os.name == "nt":
+            # Resolve environment markers inside Linux. Cross-platform pip on
+            # Windows still pulls Windows-only pywin32 from Strands' MCP deps.
+            # Requires WSL with Python 3.12 installed.
+            def wsl_path(path):
+                return subprocess.check_output(
+                    ["wsl", "wslpath", "-a", path], text=True
+                ).strip()
+
+            command = ["wsl", "python3", "-m", "pip", "install", "--quiet",
+                       "--break-system-packages", "--target", wsl_path(build),
+                       "-r", wsl_path(requirements)]
+        else:
+            command = [sys.executable, "-m", "pip", "install", "--quiet",
+                       "--target", build, "-r", requirements]
+        subprocess.run(command, check=True)
         shutil.copytree(os.path.join(ROOT, "freshtrack_agent"), os.path.join(build, "freshtrack_agent"),
                         ignore=shutil.ignore_patterns("__pycache__"))
         for name in ("places.geojson", "schedules.json", "zip_centroids.json"):
