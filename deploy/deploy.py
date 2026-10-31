@@ -52,9 +52,11 @@ def build_zip():
             # Windows still pulls Windows-only pywin32 from Strands' MCP deps.
             # Requires WSL with Python 3.12 installed.
             def wsl_path(path):
-                return subprocess.check_output(
-                    ["wsl", "wslpath", "-a", path], text=True
-                ).strip()
+                absolute = os.path.abspath(path)
+                drive, rest = os.path.splitdrive(absolute)
+                if not drive:
+                    raise ValueError("WSL build requires a Windows drive path")
+                return "/mnt/" + drive[0].lower() + rest.replace("\\", "/")
 
             command = ["wsl", "python3", "-m", "pip", "install", "--quiet",
                        "--break-system-packages", "--target", wsl_path(build),
