@@ -42,18 +42,15 @@ DEFAULT_ORIGINS =["https://kcasko.github.io", "http://localhost:8000", "http://1
 
 def build_zip():
     """Linux wheels for Python 3.12, plus the agent package, data, and handler."""
-    # pip judges environment markers by the machine it runs on, so resolving
-    # for Linux from Windows pulls in Windows-only packages. Instead, install
-    # the exact versions already working in this environment, without
-    # resolving, and leave out the ones Lambda doesn't need.
-    frozen = subprocess.run([sys.executable, "-m", "pip", "freeze", "--exclude-editable"],
-                            check=True, capture_output=True, text=True).stdout.split()
-    packages = [line for line in frozen if line.split("==")[0].lower() not in SKIP_PACKAGES]
+    # Build only from the application's declared dependencies. Freezing the
+    # developer's entire environment pulls unrelated tools into Lambda and
+    # can fail when those tools have no Linux/Python 3.12 wheels.
     with tempfile.TemporaryDirectory() as build:
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "--no-deps",
-             "--platform", "manylinux2014_x86_64", "--python-version", "3.12", "--implementation", "cp",
-             "--only-binary=:all:", "--target", build, *packages],
+            [sys.executable, "-m", "pip", "install", "--quiet", "--disable-pip-version-check",
+             "--platform", "manylinux2014_x86_64", "--python-version", "3.12",
+             "--implementation", "cp", "--only-binary=:all:", "--target", build,
+             "-r", os.path.join(ROOT, "requirements.txt")],
             check=True,
         )
         shutil.copytree(os.path.join(ROOT, "freshtrack_agent"), os.path.join(build, "freshtrack_agent"),
