@@ -141,12 +141,14 @@ class FreshTrack:
 # sometimes skipped "call 911" for someone about to faint.
 EMERGENCY = re.compile(
     r"pass(ing)? out|faint|dizzy|chest pain|can'?t breathe|unconscious|overdose|seizure|"
-    r"desmay|mareado|no puedo respirar|dolor (de|en el) pecho",
+    r"desmay|mareado|no puedo respirar|dolor (de|en el) pecho|"
+    r"إغماء|أغمى|سأفقد الوعي|دوار شديد|لا أستطيع التنفس|ألم في الصدر",
     re.IGNORECASE,
 )
 CRISIS = re.compile(
     r"suicid|kill myself|\bend it\b|end my life|want to die|hurt myself|self[- ]harm|"
-    r"quitarme la vida|matarme|no quiero vivir",
+    r"quitarme la vida|matarme|no quiero vivir|"
+    r"أريد الانتحار|أفكر في الانتحار|أريد أن أموت|سأقتل نفسي",
     re.IGNORECASE,
 )
 
@@ -154,11 +156,19 @@ CRISIS = re.compile(
 def add_safety_lines(message, reply):
     """Put 911 or 988 first when the message calls for it and the reply left it out."""
     added = []
+    arabic = bool(re.search(r"[\u0600-\u06ff]", message))
+    spanish = bool(re.search(r"desmay|mareado|suicid|matarme|no quiero vivir", message, re.IGNORECASE))
     if CRISIS.search(message) and "988" not in reply:
-        reply = "You can call or text 988 any time, day or night, to talk with someone.\n\n" + reply
+        line = ("يمكنك الاتصال أو إرسال رسالة نصية إلى 988 في أي وقت." if arabic else
+                "Puedes llamar o enviar un mensaje al 988 a cualquier hora." if spanish else
+                "You can call or text 988 any time, day or night, to talk with someone.")
+        reply = line + "\n\n" + reply
         added.append("988")
     if EMERGENCY.search(message) and "911" not in reply:
-        reply = "If you feel faint or very sick, call 911 now.\n\n" + reply
+        line = ("إذا كنت على وشك الإغماء أو في خطر طبي، اتصل بـ 911 الآن." if arabic else
+                "Si estás por desmayarte o tienes una emergencia médica, llama al 911 ahora." if spanish else
+                "If you feel faint or very sick, call 911 now.")
+        reply = line + "\n\n" + reply
         added.append("911")
     return reply, added
 
