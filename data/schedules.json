@@ -596,26 +596,34 @@
       ],
       "aliases": [
         "Royal Estates"
-      ]
+      ],
+      "uncertain_dates": [
+        "2026-11-19",
+        "2026-11-26",
+        "2026-12-24"
+      ],
+      "closed_dates": [
+        "2026-11-26"
+      ],
+      "notes": "Fourth Thursday normally; Thanksgiving distribution may shift to Nov 19. Neither Nov 19 nor Nov 26 is confirmed for 2026. Verify with the organizer before traveling. Christmas Eve Dec 24 is also unconfirmed."
     },
     "Bronco Food Pantry (WMU students only)": {
       "windows": [
         {
           "days": [
             "Mon",
+            "Wed"
+          ],
+          "start": "11:00",
+          "end": "16:00"
+        },
+        {
+          "days": [
             "Tue",
-            "Wed",
             "Thu"
           ],
           "start": "10:00",
           "end": "15:00"
-        },
-        {
-          "days": [
-            "Fri"
-          ],
-          "start": "10:00",
-          "end": "14:00"
         }
       ],
       "eligibility": "Registered WMU students only; bring Bronco ID",
@@ -624,7 +632,39 @@
         "Bronco Food Pantry",
         "Bronco Pantry",
         "WMU food pantry"
-      ]
+      ],
+      "closed_dates": [
+        "2026-11-25",
+        "2026-11-26",
+        "2026-11-27",
+        "2026-12-21",
+        "2026-12-22",
+        "2026-12-23",
+        "2026-12-24",
+        "2026-12-25",
+        "2026-12-26",
+        "2026-12-27",
+        "2026-12-28",
+        "2026-12-29",
+        "2026-12-30",
+        "2026-12-31",
+        "2027-01-01",
+        "2027-01-02",
+        "2027-01-03",
+        "2027-01-04",
+        "2027-01-05",
+        "2027-01-06",
+        "2027-01-07",
+        "2027-01-08"
+      ],
+      "uncertain_dates": [
+        "2026-12-15",
+        "2026-12-16",
+        "2026-12-17",
+        "2026-12-18",
+        "2026-12-19"
+      ],
+      "notes": "Official WMU Fall 2026 hours. Closed on campus holidays and recess, including Nov 25-27 and Dec 21-Jan 8. Dec 15-19 limited hours TBD; call/check WMU before traveling. Snow-day closures may not be reflected."
     },
     "Milestone Senior Services (senior meals)": {
       "kind": "call_to_enroll",

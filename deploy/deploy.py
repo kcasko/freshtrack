@@ -42,20 +42,29 @@ DEFAULT_ORIGINS = ["https://d7ua6xibk1726.cloudfront.net", "https://kcasko.githu
 
 def build_zip():
     """Linux wheels for Python 3.12, plus the agent package, data, and handler."""
-    # pip judges environment markers by the machine it runs on, so resolving
-    # for Linux from Windows pulls in Windows-only packages. Instead, install
-    # the exact versions already working in this environment, without
-    # resolving, and leave out the ones Lambda doesn't need.
-    frozen = subprocess.run([sys.executable, "-m", "pip", "freeze", "--exclude-editable"],
-                            check=True, capture_output=True, text=True).stdout.split()
-    packages = [line for line in frozen if line.split("==")[0].lower() not in SKIP_PACKAGES]
+    # Build only from the application's declared dependencies. Freezing the
+    # developer's entire environment pulls unrelated tools into Lambda and
+    # can fail when those tools have no Linux/Python 3.12 wheels.
     with tempfile.TemporaryDirectory() as build:
-        subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--quiet", "--disable-pip-version-check", "--no-deps",
-             "--platform", "manylinux2014_x86_64", "--python-version", "3.12", "--implementation", "cp",
-             "--only-binary=:all:", "--target", build, *packages],
-            check=True,
-        )
+        requirements = os.path.join(ROOT, "requirements.txt")
+        if os.name == "nt":
+            # Resolve environment markers inside Linux. Cross-platform pip on
+            # Windows still pulls Windows-only pywin32 from Strands' MCP deps.
+            # Requires WSL with Python 3.12 installed.
+            def wsl_path(path):
+                absolute = os.path.abspath(path)
+                drive, rest = os.path.splitdrive(absolute)
+                if not drive:
+                    raise ValueError("WSL build requires a Windows drive path")
+                return "/mnt/" + drive[0].lower() + rest.replace("\\", "/")
+
+            command = ["wsl", "python3", "-m", "pip", "install", "--quiet",
+                       "--break-system-packages", "--target", wsl_path(build),
+                       "-r", wsl_path(requirements)]
+        else:
+            command = [sys.executable, "-m", "pip", "install", "--quiet",
+                       "--target", build, "-r", requirements]
+        subprocess.run(command, check=True)
         shutil.copytree(os.path.join(ROOT, "freshtrack_agent"), os.path.join(build, "freshtrack_agent"),
                         ignore=shutil.ignore_patterns("__pycache__"))
         for name in ("places.geojson", "schedules.json", "zip_centroids.json"):

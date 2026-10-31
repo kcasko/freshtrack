@@ -63,7 +63,7 @@ def _under_daily_limit():
 
 def _clean_history(raw):
     history = []
-    for turn in (raw or [])[-MAX_HISTORY:]:
+    for turn in (raw if isinstance(raw, list) else [])[-MAX_HISTORY:]:
         if isinstance(turn, dict) and turn.get("role") in ("user", "assistant") and isinstance(turn.get("text"), str):
             history.append({"role": turn["role"], "text": turn["text"][:1500]})
     # Bedrock needs turns to alternate, starting with the user.
@@ -105,7 +105,11 @@ def handler(event, context=None):
     except (ValueError, TypeError):
         return _respond(400, {"error": "Send JSON with a message."})
 
-    message = (request.get("message") or "").strip()
+    if not isinstance(request, dict):
+        return _respond(400, {"error": "Send a JSON object with a message."})
+    if not isinstance(request.get("message"), str):
+        return _respond(400, {"error": "Message must be text."})
+    message = request["message"].strip()
     if not message or len(message) > MAX_MESSAGE:
         return _respond(400, {"error": f"Write a message of 1 to {MAX_MESSAGE} characters."})
 
@@ -115,7 +119,11 @@ def handler(event, context=None):
             message += f"\n\n(Map pin: {pin[1]:.5f}, {pin[0]:.5f})"
 
     now = request.get("now")
-    tools.set_now(dt.datetime.strptime(now, "%Y-%m-%d %H:%M") if isinstance(now, str) and NOW_PATTERN.fullmatch(now) else None)
+    try:
+        requested_now = dt.datetime.strptime(now, "%Y-%m-%d %H:%M") if isinstance(now, str) and NOW_PATTERN.fullmatch(now) else None
+    except ValueError:
+        return _respond(400, {"error": "Invalid demo date or time."})
+    tools.set_now(requested_now)
 
     if not _under_daily_limit():
         return _respond(429, {"error": "FreshTrack has reached today's demo limit. For food help now, call Kalamazoo Loaves & Fishes at 269-343-3663 or dial 2-1-1."})
@@ -125,7 +133,7 @@ def handler(event, context=None):
         reply = bot.ask(message)
         trace = bot.last_trace
     except Exception as exc:  # keep details out of the public response
-        print(f"agent error: {exc!r}")
+        print(f"agent error type: {type(exc).__name__}")
         return _respond(502, {"error": "FreshTrack could not answer just now. Call Kalamazoo Loaves & Fishes at 269-343-3663 or dial 2-1-1."})
     finally:
         now_used = tools.now()

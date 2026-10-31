@@ -133,7 +133,13 @@ def status_at(site, now):
       closed_today    nothing today
     """
     minute = now.hour * 60 + now.minute
-    today = [w for w in site["schedule"].get("windows", []) if window_applies(w, now.date())]
+    schedule = site["schedule"]
+    date = now.date().isoformat()
+    if date in schedule.get("closed_dates", []):
+        return {"status": "closed_today", "window": None, "next_open": next_open(site, now)}
+    if date in schedule.get("uncertain_dates", []):
+        return {"status": "time_unknown", "window": "Holiday or limited hours not confirmed; call first", "next_open": next_open(site, now)}
+    today = [w for w in schedule.get("windows", []) if window_applies(w, now.date())]
     timed = sorted((w for w in today if w.get("start")), key=lambda w: _minutes(w["start"]))
 
     def first(test):
@@ -162,6 +168,8 @@ def next_open(site, now, days_ahead=35):
     minute = now.hour * 60 + now.minute
     for offset in range(days_ahead + 1):
         day = now.date() + dt.timedelta(days=offset)
+        if day.isoformat() in site["schedule"].get("closed_dates", []) or day.isoformat() in site["schedule"].get("uncertain_dates", []):
+            continue
         windows = [w for w in site["schedule"].get("windows", []) if window_applies(w, day)]
         windows.sort(key=lambda w: _minutes(w["start"]) if w.get("start") else 24 * 60)
         for window in windows:

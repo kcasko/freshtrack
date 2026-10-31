@@ -41,6 +41,19 @@ def time_mentions(text):
     return mentions
 
 
+def positioned_time_mentions(text):
+    """Yield clock-time spans with candidate minute values in text order."""
+    found = []
+    for m in TIME_12H.finditer(text):
+        value = _to_minutes(m.group(1), m.group(2), m.group(3))
+        if value is not None:
+            found.append((m.start(), m.end(), {value}))
+    for m in TIME_24H.finditer(text):
+        value = _to_minutes(m.group(1), m.group(2), None)
+        found.append((m.start(), m.end(), {value, value + 720} if value < 720 else {value}))
+    return sorted(found, key=lambda item: item[0])
+
+
 def times_in(text):
     return set().union(*time_mentions(text))
 
@@ -57,9 +70,9 @@ def _range_ends(text):
     return found
 
 
-def allowed_times():
+def allowed_times(site=None):
     allowed = set()
-    for site in data.sites():
+    for site in ([site] if site is not None else data.sites()):
         note = site.get("hours_note", "")
         allowed |= times_in(note) | _range_ends(note)
         for window in site["schedule"].get("windows", []):
@@ -84,10 +97,22 @@ def check(reply, now=None):
     allowed = allowed_times()
     if now is not None:
         allowed.add(now.hour * 60 + now.minute)
-    for readings in time_mentions(reply):
-        if not readings & allowed:
+    # Check a clock time against the site(s) named in its sentence, not merely
+    # a global pool of unrelated pantry opening and closing times.
+    for start, end, readings in positioned_time_mentions(reply):
+        owners = sites_for_phone(reply, start, end)
+        site_times = set()
+        for name in owners:
+            site = data.find_site(name)
+            if site:
+                site_times |= allowed_times(site)
+        permitted = (site_times if owners else allowed)
+        if now is not None:
+            permitted = permitted | {now.hour * 60 + now.minute}
+        if not readings & permitted:
             minutes = max(readings)
-            problems.append(f"time {data.format_time(f'{minutes // 60:02d}:{minutes % 60:02d}')} is not in the dataset")
+            location = ", ".join(sorted(owners)) if owners else "the dataset"
+            problems.append(f"time {data.format_time(f'{minutes // 60:02d}:{minutes % 60:02d}')} is not documented for {location}")
     phones = allowed_phones()
     owners = phone_owners()
     for match in PHONE.finditer(reply):
