@@ -118,6 +118,7 @@ class FreshTrack:
                 reply = self._fallback_in_language_of(message)
                 trace["fell_back"] = True
 
+        reply, trace["safety_lines_added"] = add_safety_lines(message, reply)
         self.last_trace = trace
         return reply
 
@@ -134,6 +135,32 @@ class FreshTrack:
         except Exception:
             return SAFE_FALLBACK
         return translated if translated and not guard.check(translated, tools.now()) else SAFE_FALLBACK
+
+
+# Safety lines are added in code, not left to the prompt: in testing, the model
+# sometimes skipped "call 911" for someone about to faint.
+EMERGENCY = re.compile(
+    r"pass(ing)? out|faint|dizzy|chest pain|can'?t breathe|unconscious|overdose|seizure|"
+    r"desmay|mareado|no puedo respirar|dolor (de|en el) pecho",
+    re.IGNORECASE,
+)
+CRISIS = re.compile(
+    r"suicid|kill myself|\bend it\b|end my life|want to die|hurt myself|self[- ]harm|"
+    r"quitarme la vida|matarme|no quiero vivir",
+    re.IGNORECASE,
+)
+
+
+def add_safety_lines(message, reply):
+    """Put 911 or 988 first when the message calls for it and the reply left it out."""
+    added = []
+    if CRISIS.search(message) and "988" not in reply:
+        reply = "You can call or text 988 any time, day or night, to talk with someone.\n\n" + reply
+        added.append("988")
+    if EMERGENCY.search(message) and "911" not in reply:
+        reply = "If you feel faint or very sick, call 911 now.\n\n" + reply
+        added.append("911")
+    return reply, added
 
 
 # Narration of the agent's own steps, which means nothing to someone reading a text.

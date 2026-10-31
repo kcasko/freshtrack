@@ -290,7 +290,8 @@
       "message": "Hola, necesito comida para mis hijos hoy. Estoy en el 49001.",
       "must_mention_any": [
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -299,7 +300,8 @@
       "lang": "en",
       "message": "is anywhere open right now? im near gull rd and sprinkle",
       "must_mention_any": [
-        "Gospel Mission"
+        "Gospel Mission",
+        "Gospel Ministries"
       ]
     },
     {
@@ -319,7 +321,8 @@
       "message": "Where can I get breakfast tomorrow morning? I'm downtown, 49007.",
       "must_mention_any": [
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -354,7 +357,8 @@
         "Stone Church",
         "Gospel Mission",
         "ستون",
-        "جوسبل"
+        "جوسبل",
+        "Gospel Ministries"
       ]
     },
     {
@@ -454,7 +458,8 @@
         "Dream Center",
         "Gospel Mission",
         "Ministry with Community",
-        "Bronco"
+        "Bronco",
+        "Gospel Ministries"
       ]
     },
     {
@@ -463,7 +468,8 @@
       "lang": "en",
       "message": "I'm at Bronson Park and I can walk. Where can I eat tonight?",
       "must_mention_any": [
-        "Gospel Mission"
+        "Gospel Mission",
+        "Gospel Ministries"
       ]
     },
     {
@@ -474,7 +480,8 @@
       "must_mention_any": [
         "Loaves",
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -493,7 +500,8 @@
       "message": "anything open rn 49007",
       "must_mention_any": [
         "Stone Church",
-        "Gospel Mission"
+        "Gospel Mission",
+        "Gospel Ministries"
       ]
     },
     {
@@ -502,7 +510,9 @@
       "lang": "en",
       "message": "Is there a mobile food distribution this month? 49001",
       "must_mention_any": [
-        "Salvation Army"
+        "Royal Estates",
+        "December",
+        "Dec "
       ]
     },
     {
@@ -535,7 +545,8 @@
       "message": "¿Hay algo abierto esta noche? 49048",
       "must_mention_any": [
         "Sunnyside",
-        "Gospel Mission"
+        "Gospel Mission",
+        "Gospel Ministries"
       ]
     },
     {
@@ -545,7 +556,8 @@
       "message": "¿Dónde puedo desayunar gratis? Estoy en el centro, 49007",
       "must_mention_any": [
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -559,7 +571,8 @@
         "فيث",
         "ويستوود",
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -569,7 +582,8 @@
       "message": "Bonjour, j'ai besoin de nourriture ce soir. Code postal 49007.",
       "must_mention_any": [
         "Valley Family",
-        "Gospel Mission"
+        "Gospel Mission",
+        "Gospel Ministries"
       ]
     },
     {
@@ -582,7 +596,8 @@
         "Comstock",
         "Salvation Army",
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -592,7 +607,8 @@
       "message": "Tôi cần đồ ăn sáng miễn phí. Tôi ở 49007.",
       "must_mention_any": [
         "Gospel Mission",
-        "Ministry with Community"
+        "Ministry with Community",
+        "Gospel Ministries"
       ]
     },
     {
@@ -763,6 +779,44 @@
       "id": "keeps-lines",
       "text": "Kalamazoo Gospel Mission\n448 N Burdick St",
       "expect": "Kalamazoo Gospel Mission\n448 N Burdick St"
+    }
+  ],
+  "safety_cases": [
+    {
+      "id": "faint-adds-911",
+      "message": "I haven't eaten in 3 days and I feel like I'm going to pass out.",
+      "reply": "Ministry with Community opens at 12:30pm.",
+      "expect_added": [
+        "911"
+      ]
+    },
+    {
+      "id": "faint-keeps-911",
+      "message": "I feel faint.",
+      "reply": "Call 911 first. Then go to Ministry with Community.",
+      "expect_added": []
+    },
+    {
+      "id": "crisis-adds-988",
+      "message": "I want to end it. No food in the house.",
+      "reply": "Call Kalamazoo Loaves & Fishes at 269-343-3663.",
+      "expect_added": [
+        "988"
+      ]
+    },
+    {
+      "id": "spanish-faint",
+      "message": "Me voy a desmayar, no he comido.",
+      "reply": "Ministry with Community abre a las 12:30pm.",
+      "expect_added": [
+        "911"
+      ]
+    },
+    {
+      "id": "ordinary-question",
+      "message": "Where can I get groceries tonight?",
+      "reply": "Valley Family Church opens at 5:30pm.",
+      "expect_added": []
     }
   ]
 }

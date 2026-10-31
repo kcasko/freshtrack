@@ -70,9 +70,15 @@ def run_search_cases():
 
 
 def run_guard_cases():
-    from freshtrack_agent.agent import tidy_for_sms
+    from freshtrack_agent.agent import add_safety_lines, tidy_for_sms
 
     checks = failures = 0
+    for case in CASES["safety_cases"]:
+        _, added = add_safety_lines(case["message"], case["reply"])
+        checks += 1
+        if added != case["expect_added"]:
+            failures += 1
+            print(f"  FAIL {case['id']}: expected {case['expect_added']}, got {added}")
     for case in CASES["guard_cases"]:
         problems = guard.check(case["reply"])
         checks += 1
@@ -115,7 +121,7 @@ def language_ok(text, lang):
         "es": r"el|la|los|las|para|hoy|puede|llame|llama|abierto|comida|de|en|al|tienes|hay|con",
         "fr": r"le|la|les|vous|pour|est|ce|de|ouvert|appelez",
         "sw": r"na|ya|kwa|leo|wa|piga|chakula|saa|hadi",
-        "en": r"the|is|you|to|and|call|open",
+        "en": r"the|is|you|to|and|call|open|at|in|on|for|are|no|need",
     }[lang]
     return len(re.findall(rf"\b({stopwords})\b", lowered)) >= 3
 

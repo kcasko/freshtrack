@@ -46,29 +46,46 @@ Pantry hours in Kalamazoo County are things like "4th Saturday, 9am" or "Mondays
 
 ### Results
 
-`python eval/run_eval.py --agent --baseline --runs 3`, Claude Haiku 4.5 on Amazon Bedrock. 30 realistic requests, each run 3 times (90 replies), in English, Spanish, Arabic, French, Swahili, Vietnamese, and Chinese, with the clock pinned to a specific time in November 2026. They include a medical emergency, a suicidal message, an undocumented person asking if they qualify, a Chicago address, an appointment-only pantry, a pantry with no listed time, and sources that disagree. The baseline is the same model and system prompt with no tools.
+`python eval/run_eval.py --agent --baseline --runs 3`, Claude Haiku 4.5 on Amazon Bedrock, run October 30, 2026 against the verified 29-place dataset. 34 realistic requests, each run 3 times (102 replies), in English, Spanish, Arabic, French, Swahili, Vietnamese, and Chinese, with the clock pinned to a specific time in November 2026. They include:
+- a medical emergency, a suicidal message, and an out-of-county address
+- an undocumented person asking if they qualify, and someone with no ID
+- a WMU student, a homebound senior, and a Plainwell resident
+- an appointment-only pantry, a pantry with no listed time, and sources that disagree
 
-| Metric (90 replies) | FreshTrack | Same model, no tools |
+The baseline is the same model and system prompt with no tools.
+
+| Metric (102 replies) | FreshTrack | Same model, no tools |
 |---|---|---|
-| Passed every check | **90/90** | 4/90 |
-| Cases that passed on all 3 runs | **30/30** | 0/30 |
-| Named a right place for that time and need | **90/90** | 27/90 |
-| Wrong time, phone, or unsupported promise delivered | **0/90** | 54/90 |
-| Safety and case rules met (911, 988, 2-1-1, appointment, call first) | **90/90** | 82/90 |
-| Reply in the person's language | **90/90** | 77/90 |
-| Median reading grade (English replies) | **5.8** | 7.9 |
-| Median words | 61 | 78 |
-| Median response time | 11.7 s | 6.1 s |
+| Passed every check | **102/102** | 7/102 |
+| Cases that passed on all 3 runs | **34/34** | 2/34 |
+| Named a right place for that time and need | **102/102** | 38/102 |
+| Wrong time, phone, or unsupported promise delivered | **0/102** | 64/102 |
+| Safety and case rules met (911, 988, 2-1-1, appointment, call first) | **102/102** | 91/102 |
+| Reply in the person's language | **102/102** | 84/102 |
+| Median reading grade (English replies) | **5.6** | 6.8 |
+| Median words | 70 | 74 |
+| Median response time | 12.0 s | 6.2 s |
 
-The guard caught 3 of 90 drafts and the fact-checker fixed all 3. Two promised that pantries "don't ask about immigration status" or income, which nothing in the data supports. The third flagged a phone number, possibly a false alarm, but the rewritten reply was still correct. No reply needed the safe fallback.
+The guard caught 7 of 102 drafts, and the fact-checker fixed all 7 before anyone saw them:
+- 5 claimed "no ID needed" for places that don't publish that. The Loaves & Fishes mobile pantries do publish it, and the guard allows the claim for them.
+- 2 put Ministry with Community's phone number next to Gospel Ministries' name.
 
-Deterministic checks, with no AWS needed and run in CI on every push: 44/44 schedule checks against expected answers worked out by hand from the published hours (first, fifth, and nth-weekday rules, conflicts, unknown times), 5/5 search checks, and 18/18 guard and SMS-cleanup checks. Every reply is in `eval/results.json`.
+No reply needed the safe fallback.
+
+Earlier runs shaped the safeguards. One reply told an undocumented person that pantries "don't ask about immigration status," which led to the unsupported-promise check. In another run, 2 of 3 replies to "I feel like I'm going to pass out" left out 911. The prompt rule alone wasn't reliable, so code now adds a 911 line (or 988 for a suicidal message) whenever the reply leaves it out.
+
+Deterministic checks, with no AWS needed and run in CI on every push:
+- 57/57 schedule checks against expected answers worked out by hand from the published hours (nth-weekday rules, excluded weeks, exact mobile dates, conflicts, unknown times)
+- 5/5 search checks
+- 28/28 guard, SMS-cleanup, and safety-line checks
+
+Every reply is in `eval/results.json`.
 
 Notes on fairness and limits:
 - Because the baseline's prompt describes tools it doesn't have, it sometimes writes fake tool calls as text. That reflects how a plain chatbot would behave with this prompt, and it is part of why its numbers are low.
 - Most checks are automatic string checks, such as whether the right site is named or 911 appears. A reply can pass and still read awkwardly, so I also read the failures and a sample of the passes.
-- The unsupported-promise rule only catches the phrasings it knows about, in English and Spanish.
-- Hours come from published directories, not calls to each site. The agent always tells people to call first when sources disagree or a time isn't listed.
+- The promise checks only catch the phrasings they know about, in English and Spanish.
+- Hours come from published sources, not calls to each site. The agent always tells people to call first when sources disagree or a time isn't listed.
 
 ### Run options
 
