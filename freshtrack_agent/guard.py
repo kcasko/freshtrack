@@ -41,6 +41,19 @@ def time_mentions(text):
     return mentions
 
 
+def positioned_time_mentions(text):
+    """Yield clock-time spans with candidate minute values in text order."""
+    found = []
+    for m in TIME_12H.finditer(text):
+        value = _to_minutes(m.group(1), m.group(2), m.group(3))
+        if value is not None:
+            found.append((m.start(), m.end(), {value}))
+    for m in TIME_24H.finditer(text):
+        value = _to_minutes(m.group(1), m.group(2), None)
+        found.append((m.start(), m.end(), {value, value + 720} if value < 720 else {value}))
+    return sorted(found, key=lambda item: item[0])
+
+
 def times_in(text):
     return set().union(*time_mentions(text))
 
@@ -86,9 +99,8 @@ def check(reply, now=None):
         allowed.add(now.hour * 60 + now.minute)
     # Check a clock time against the site(s) named in its sentence, not merely
     # a global pool of unrelated pantry opening and closing times.
-    time_regex = re.compile(f"(?:{TIME_12H.pattern})|(?:{TIME_24H.pattern})", re.IGNORECASE)
-    for match, readings in zip(time_regex.finditer(reply), time_mentions(reply)):
-        owners = sites_for_phone(reply, match.start(), match.end())
+    for start, end, readings in positioned_time_mentions(reply):
+        owners = sites_for_phone(reply, start, end)
         site_times = set()
         for name in owners:
             site = data.find_site(name)
