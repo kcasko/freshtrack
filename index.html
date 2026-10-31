@@ -76,6 +76,8 @@
   .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--green); }
   .tab-body { flex: 1; min-height: 0; display: none; flex-direction: column; }
   .tab-body.active { display: flex; }
+  .tab-body:not(.active) { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 
   /* Ask tab */
   .chat-scroll { flex: 1; overflow-y: auto; padding: 24px; }
@@ -190,8 +192,8 @@
 <div class="app">
   <section class="panel">
     <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" aria-controls="tab-ask" id="tab-btn-ask">Ask</button>
-      <button role="tab" aria-selected="false" aria-controls="tab-browse" id="tab-btn-browse">All places <span id="place-count"></span></button>
+      <button role="tab" tabindex="0" aria-selected="true" aria-controls="tab-ask" id="tab-btn-ask">Ask</button>
+      <button role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-browse" id="tab-btn-browse">All places <span id="place-count"></span></button>
     </div>
 
     <div class="tab-body active" id="tab-ask" role="tabpanel" aria-labelledby="tab-btn-ask">
@@ -205,7 +207,7 @@
             <li><button type="button"><span class="ex-lang">العربية</span><span class="ex-text" dir="rtl">أحتاج طعامًا الليلة. الرمز البريدي 49007</span></button></li>
             <li><button type="button"><span class="ex-lang">English</span><span class="ex-text">My mom is 80 and can't leave the house. She lives in 49009.</span></button></li>
           </ul>
-          <p class="trust">Every time and phone number in an answer is checked against the published schedules before you see it. Schedules change, so call before you go.</p>
+          <p class="trust">Automatic checks look for unsupported times and phone numbers but cannot guarantee accuracy. Schedules change, so call before you go.</p>
         </div>
         <div id="chat-log" aria-live="polite"></div>
       </div>
@@ -258,7 +260,7 @@
         <div class="list-head" id="list-heading">Nearest first</div>
         <div id="list"></div>
         <footer class="site-foot">
-          <p><strong>Call before you go.</strong> Each place was checked against a current source on October 30, 2026: its own website, the Kalamazoo Loaves &amp; Fishes 2026 mobile schedule, or recent reporting. Places with no current source were left out. Some sites only run on certain weeks of the month, and sources sometimes disagree.</p>
+          <p><strong>Call before you go.</strong> Source links were reviewed October 30, 2026, but some hours are from older directories, may be incorrect, and may change without notice. Some sites only run on certain weeks of the month, and sources sometimes disagree.</p>
           <p>Not sure where to start? Kalamazoo Loaves &amp; Fishes: <a href="tel:2693433663">269-343-3663</a>.</p>
           <p>FreshTrack is open source. <a href="https://github.com/kcasko/freshtrack">How it works</a></p>
         </footer>
@@ -267,7 +269,7 @@
   </section>
 
   <div class="map-wrap">
-    <div id="map" aria-label="Map of food pantries and free meals in Kalamazoo County"></div>
+    <div id="map" role="region" aria-label="Interactive map of food pantries and free meals in Kalamazoo County. The All places tab provides a text alternative."></div>
     <div class="legend" aria-hidden="true">
       <span><i style="background:#1f5135"></i>Groceries</span>
       <span><i style="background:#d9931c"></i>Free meals</span>
@@ -330,6 +332,7 @@ function kindHtml(types) {
 function showTab(name) {
   ["ask", "browse"].forEach((t) => {
     $(`tab-btn-${t}`).setAttribute("aria-selected", String(t === name));
+    $(`tab-btn-${t}`).tabIndex = t === name ? 0 : -1;
     $(`tab-${t}`).classList.toggle("active", t === name);
   });
   if (map) setTimeout(() => map.resize(), 0);
@@ -575,6 +578,15 @@ function resetChat() {
 async function init() {
   $("tab-btn-ask").addEventListener("click", () => showTab("ask"));
   $("tab-btn-browse").addEventListener("click", () => showTab("browse"));
+  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault();
+    const current = $("tab-btn-ask").getAttribute("aria-selected") === "true" ? 0 : 1;
+    const next = e.key === "Home" ? 0 : e.key === "End" ? 1 : 1 - current;
+    const id = next === 0 ? "ask" : "browse";
+    showTab(id);
+    $(`tab-btn-${id}`).focus();
+  });
   $("chat-form").addEventListener("submit", (e) => { e.preventDefault(); sendChat($("chat-input").value); });
   document.querySelectorAll("#chat-examples button").forEach((btn) => btn.addEventListener("click", () => sendChat(btn.querySelector(".ex-text").textContent)));
   $("chat-reset").addEventListener("click", resetChat);
